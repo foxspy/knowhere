@@ -29,8 +29,13 @@ pipeline {
                         sh "apt-get install dirmngr -y"
                         sh "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA"
                         sh "apt-get install build-essential libopenblas-dev ninja-build git -y"
-                        sh "git config --global --add safe.directory '*'"
-                        sh "git submodule update --recursive --init"
+                        withCredentials([usernamePassword(credentialsId: "github-token", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                            sh """
+                                git config --global url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
+                                git config --global --add safe.directory '*'
+                                git submodule update --recursive --init
+                            """
+                        }
                         sh "mkdir build"
                         sh "cd build/ && cmake .. -DCMAKE_BUILD_TYPE=Release -DWITH_UT=ON -DWITH_DISKANN=ON -G Ninja"
                         sh "pwd"
