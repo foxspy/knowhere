@@ -33,8 +33,7 @@ pipeline {
                             sh """
                                 git config --global url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
                                 git config --global --add safe.directory '*'
-                                export GOPRIVATE="github.com/zilliztech/*"
-                                git submodule update --recursive --init
+                                git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
                             """
                         }
                         sh "mkdir build"
