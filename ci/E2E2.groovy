@@ -29,6 +29,13 @@ pipeline {
                         sh "apt-get install libaio-dev libopenblas-dev libcurl4-openssl-dev libdouble-conversion-dev libevent-dev libgflags-dev git -y"
                         sh "pip3 install conan==1.58.0"
                         sh "rm -rf /usr/local/lib/cmake/"
+                        withCredentials([usernamePassword(credentialsId: "github-token", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
+                            sh """
+                                git config --global url."https://${GITHUB_USER}:${GITHUB_TOKEN}@github.com".insteadOf "https://github.com"
+                                git config --global --add safe.directory '*'
+                                git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
+                            """
+                        }
                         sh "mkdir build"
                         sh "cd build/ && conan install .. --build=missing -o with_ut=True -o with_diskann=True -s compiler.libcxx=libstdc++11 && conan build .."
                         sh "cd python && VERSION=${version} python3 setup.py bdist_wheel"
