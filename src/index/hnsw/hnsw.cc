@@ -451,6 +451,6 @@ class HnswIndexNode : public IndexNode {
     std::shared_ptr<ThreadPool> pool_;
 };
 
-KNOWHERE_REGISTER_GLOBAL(HNSW, [](const Object& object) { return Index<HnswIndexNode>::Create(object); });
+KNOWHERE_REGISTER_GLOBAL(HNSW_CLOUD, [](const Object& object) { return Index<HnswIndexNode>::Create(object); });
 
 }  // namespace knowhere

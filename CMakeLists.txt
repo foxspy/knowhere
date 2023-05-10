@@ -65,9 +65,11 @@ include(cmake/utils/compile_flags.cmake)
 include(cmake/utils/platform_check.cmake)
 include(cmake/libs/libfaiss.cmake)
 include(cmake/libs/libhnsw.cmake)
+include(cmake/libs/libcardinal.cmake)
 
 include_directories(thirdparty/faiss)
 include_directories(thirdparty/bitset)
+include_directories(thirdparty/cardinal/src)
 
 find_package(OpenMP REQUIRED)
 
@@ -139,7 +141,7 @@ endif()
 include_directories(src)
 include_directories(include)
 
-list(APPEND KNOWHERE_LINKER_LIBS faiss)
+list(APPEND KNOWHERE_LINKER_LIBS faiss cardinal)
 list(APPEND KNOWHERE_LINKER_LIBS glog::glog)
 list(APPEND KNOWHERE_LINKER_LIBS nlohmann_json::nlohmann_json)
 list(APPEND KNOWHERE_LINKER_LIBS prometheus-cpp::core prometheus-cpp::push)

@@ -30,9 +30,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+          token: ${{ secrets.CARDINAL_ACCESS_TOKEN }}
       - name: Install Dependency
         run: |
-          sudo apt update && sudo apt install -y cmake g++ gcc libopenblas-dev libcurl4-openssl-dev libaio-dev python3 python3-pip && pip3 install conan==1.58.0
+          sudo apt update && sudo apt install -y cmake g++ gcc libopenblas-dev libcurl4-openssl-dev libaio-dev libtbb-dev libtbb2 python3 python3-pip && pip3 install conan==1.58.0
       - name: Build & Run
         run: |
           mkdir build && cd build && conan install .. --build=missing -s build_type=Debug -o with_ut=True -o with_diskann=True -o with_asan=True && conan build .. \
@@ -47,13 +48,14 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: recursive
+          token: ${{ secrets.CARDINAL_ACCESS_TOKEN }}
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
       - name: Install Dependency
         run: |
-          sudo apt update && sudo apt install -y cmake g++ gcc libopenblas-dev libaio-dev libcurl4-openssl-dev python3 python3-pip python3-setuptools && pip3 install conan==1.58.0 pytest faiss-cpu numpy wheel
+          sudo apt update && sudo apt install -y cmake g++ gcc libopenblas-dev libaio-dev libtbb-dev libtbb2 libcurl4-openssl-dev python3 python3-pip python3-setuptools && pip3 install conan==1.58.0 pytest faiss-cpu numpy wheel
       - name: Build
         run: |
           mkdir build && cd build && conan install .. --build=missing -o with_diskann=True -s compiler.libcxx=libstdc++11 -s build_type=Release && conan build ..

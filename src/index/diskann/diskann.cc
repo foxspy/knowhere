@@ -697,5 +697,6 @@ DiskANNIndexNode<T>::GetCachedNodeNum(const float cache_dram_budget, const uint6
     return num_nodes_to_cache;
 }
 
-KNOWHERE_REGISTER_GLOBAL(DISKANN, [](const Object& object) { return Index<DiskANNIndexNode<float>>::Create(object); });
+KNOWHERE_REGISTER_GLOBAL(DISKANN_CLOUD,
+                         [](const Object& object) { return Index<DiskANNIndexNode<float>>::Create(object); });
 }  // namespace knowhere

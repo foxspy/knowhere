@@ -126,6 +126,7 @@ TEST_CASE("Test Get Vector By Ids", "[GetVectorByIds]") {
             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT, ivfflat_gen),
             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT_CC, ivfflatcc_gen),
             make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
+            make_tuple(knowhere::IndexEnum::INDEX_HNSW_CLOUD, hnsw_gen),
         }));
         auto idx = knowhere::IndexFactory::Instance().Create(name);
         auto cfg_json = gen().dump();

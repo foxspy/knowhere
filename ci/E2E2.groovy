@@ -26,7 +26,7 @@ pipeline {
                         def gitShortCommit = sh(returnStdout: true, script: "echo ${env.GIT_COMMIT} | cut -b 1-7 ").trim()
                         version="${env.CHANGE_ID}.${date}.${gitShortCommit}"
                         sh "apt-get update || true"
-                        sh "apt-get install libaio-dev libopenblas-dev libcurl4-openssl-dev libdouble-conversion-dev libevent-dev libgflags-dev git -y"
+                        sh "apt-get install libaio-dev libopenblas-dev libcurl4-openssl-dev libdouble-conversion-dev libevent-dev libgflags-dev libtbb-dev libtbb2 git -y"
                         sh "pip3 install conan==1.58.0"
                         sh "rm -rf /usr/local/lib/cmake/"
                         withCredentials([usernamePassword(credentialsId: "github-token", usernameVariable: 'GITHUB_USER', passwordVariable: 'GITHUB_TOKEN')]) {
@@ -72,7 +72,7 @@ pipeline {
                       sh "apt-get install dirmngr -y"
                       sh "apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 42D5A192B819C5DA"
                       sh "apt install python3-pip -y"
-                      sh "apt install libopenblas-dev libaio-dev -y"
+                      sh "apt install libopenblas-dev libaio-dev libtbb2 libtbb-dev -y"
                       sh "nvidia-smi"
                       sh "pip3 install ${knowhere_wheel} \
                           && pip3 install -r requirements.txt --timeout 30 --retries 6  && pytest -v -m 'L0 and cpu'"
