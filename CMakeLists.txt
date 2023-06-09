@@ -128,6 +128,7 @@ append_flags( CMAKE_CXX_FLAGS
                     "-fPIC"
                     "-DELPP_THREAD_SAFE"
                     "-fopenmp"
+                    "-march=native"
                     )
 
 # option "-rdynamic" is to print out detailed backtrace info for debug-ease
