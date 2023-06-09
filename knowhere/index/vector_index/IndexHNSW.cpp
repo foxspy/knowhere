@@ -34,6 +34,21 @@
 #include "index/vector_index/helpers/RangeUtil.h"
 
 namespace knowhere {
+namespace {
+    inline int64_t
+    CheckAndGetEfValue(const Config& config) {
+        auto topk_val = GetMetaTopk(config);
+        if (CheckKeyInConfig(config, indexparam::EF)) {
+            auto ef_val = GetIndexParamEf(config);
+            if (ef_val < topk_val) {
+                KNOWHERE_THROW_MSG("ef is smaller than topk in hnsw.");
+            }
+            return ef_val;
+        } else {
+            return std::max(knowhere::DEFAULT_HNSW_EF, topk_val);
+        }
+    }
+}  // namespace
 
 BinarySet
 IndexHNSW::Serialize(const Config& config) {
@@ -272,7 +287,8 @@ IndexHNSW::QueryImpl(int64_t n, const float* xq, int64_t k, float* distances, in
         feder = std::make_unique<feder::hnsw::FederResult>();
     }
 
-    size_t ef = GetIndexParamEf(config);
+    size_t ef = CheckAndGetEfValue(config);
+
     hnswlib::SearchParam param{ef};
     bool transform = (index_->metric_type() == 1);  // InnerProduct: 1
 
@@ -313,7 +329,7 @@ IndexHNSW::QueryByRangeImpl(int64_t n, const float* xq, float*& distances, int64
         feder = std::make_unique<feder::hnsw::FederResult>();
     }
 
-    size_t ef = GetIndexParamEf(config);
+    size_t ef = CheckAndGetEfValue(config);
     hnswlib::SearchParam param{ef};
 
     float radius = GetMetaRadius(config);
