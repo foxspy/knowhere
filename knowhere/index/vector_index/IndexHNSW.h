@@ -87,7 +87,9 @@ class IndexHNSW : public VecIndex {
 
  private:
     std::shared_ptr<ThreadPool> pool_;
-    std::unique_ptr<hnswlib::HierarchicalNSW<float>> index_;
+    std::unique_ptr<hnswlib::HNSWInterface<float>> index_;
+    int32_t metric_ = 0;      // 0: L2, 1: IP
+    int32_t quant_type_ = 0;  // 0: BF16, 1: SQ8, 2: SQ4
 };
 
 }  // namespace knowhere

@@ -23,9 +23,14 @@
 #include "common/Log.h"
 #include "common/Timer.h"
 #include "common/Utils.h"
+#include "hnswlib/hnswlib/bf16_quant.h"
+#include "hnswlib/hnswlib/evaluator.h"
 #include "hnswlib/hnswlib/hnswalg.h"
+#include "hnswlib/hnswlib/sq4_quant.h"
+#include "hnswlib/hnswlib/sq8_quant.h"
 #include "index/vector_index/adapter/VectorAdapter.h"
 #include "index/vector_index/helpers/FaissIO.h"
+#include "index/vector_index/helpers/IndexParameter.h"
 #include "index/vector_index/helpers/RangeUtil.h"
 
 namespace knowhere {
@@ -38,6 +43,8 @@ IndexHNSW::Serialize(const Config& config) {
 
     try {
         MemoryIOWriter writer;
+        writer.write(&metric_, sizeof(metric_));
+        writer.write(&quant_type_, sizeof(quant_type_));
         index_->saveIndex(writer);
         std::shared_ptr<uint8_t[]> data(writer.data_);
 
@@ -58,33 +65,70 @@ IndexHNSW::Load(const BinarySet& index_binary) {
         reader.total = binary->size;
         reader.data_ = binary->data.get();
 
-        hnswlib::SpaceInterface<float>* space = nullptr;
-        index_ = std::make_unique<hnswlib::HierarchicalNSW<float>>(space);
+        reader.read(&metric_, sizeof(metric_));
+        reader.read(&quant_type_, sizeof(quant_type_));
+        if (metric_ == 0) {
+            if (quant_type_ == 2) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ4Quantizer<0>>>();
+            } else if (quant_type_ == 1) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ8Quantizer<0>>>();
+            } else {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::BF16Quantizer<0>>>();
+            }
+        } else if (metric_ == 1) {
+            if (quant_type_ == 2) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ4Quantizer<1>>>();
+            } else if (quant_type_ == 1) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ8Quantizer<1>>>();
+            } else {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::BF16Quantizer<1>>>();
+            }
+        }
         index_->loadIndex(reader);
     } catch (std::exception& e) {
         KNOWHERE_THROW_MSG(e.what());
     }
-    LOG_KNOWHERE_INFO_ << "Loaded HNSW index. #points num:" << index_->max_elements_ << " #M:" << index_->M_
-                       << " #max level:" << index_->maxlevel_ << " #ef_construction:" << index_->ef_construction_
-                       << " #dim:" << *(size_t*)(index_->space_->get_dist_func_param());
+    LOG_KNOWHERE_INFO_ << "Loaded HNSW index. #points num:" << index_->max_elemnts() << " #M:" << index_->M()
+                       << " #max level:" << index_->maxlevel() << " #ef_construction:" << index_->ef_construction()
+                       << " #dim:" << index_->dim();
 }
 
 void
 IndexHNSW::Train(const DatasetPtr& dataset_ptr, const Config& config) {
     try {
         GET_TENSOR_DATA_DIM(dataset_ptr)
-
-        hnswlib::SpaceInterface<float>* space;
-        std::string metric_type = GetMetaMetricType(config);
-        if (metric_type == metric::L2) {
-            space = new hnswlib::L2Space(dim);
-        } else if (metric_type == metric::IP) {
-            space = new hnswlib::InnerProductSpace(dim);
-        } else {
-            KNOWHERE_THROW_MSG("Metric type not supported: " + metric_type);
+        if (GetMetaMetricType(config) == metric::L2 && hnswlib::evaluate_sq4((const float*)p_data, rows, dim)) {
+            quant_type_ = 2;
+        } else if (hnswlib::evaluate_sq8((const float*)p_data, rows, dim)) {
+            quant_type_ = 1;
         }
-        index_ = std::make_unique<hnswlib::HierarchicalNSW<float>>(space, rows, GetIndexParamHNSWM(config),
-                                                                   GetIndexParamEfConstruction(config));
+        if (GetMetaMetricType(config) == metric::L2) {
+            metric_ = 0;
+            if (quant_type_ == 2) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ4Quantizer<0>>>(
+                    dim, rows, GetIndexParamHNSWM(config), GetIndexParamEfConstruction(config));
+            } else if (quant_type_ == 1) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ8Quantizer<0>>>(
+                    dim, rows, GetIndexParamHNSWM(config), GetIndexParamEfConstruction(config));
+            } else {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::BF16Quantizer<0>>>(
+                    dim, rows, GetIndexParamHNSWM(config), GetIndexParamEfConstruction(config));
+            }
+        } else if (GetMetaMetricType(config) == metric::IP) {
+            metric_ = 1;
+            if (quant_type_ == 2) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ4Quantizer<1>>>(
+                    dim, rows, GetIndexParamHNSWM(config), GetIndexParamEfConstruction(config));
+            } else if (quant_type_ == 1) {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::SQ8Quantizer<1>>>(
+                    dim, rows, GetIndexParamHNSWM(config), GetIndexParamEfConstruction(config));
+            } else {
+                index_ = std::make_unique<hnswlib::HierarchicalNSW<float, hnswlib::BF16Quantizer<1>>>(
+                    dim, rows, GetIndexParamHNSWM(config), GetIndexParamEfConstruction(config));
+            }
+        }
+
+        index_->train((const float*)p_data, rows);
     } catch (std::exception& e) {
         KNOWHERE_THROW_MSG(e.what());
     }
@@ -99,41 +143,17 @@ IndexHNSW::AddWithoutIds(const DatasetPtr& dataset_ptr, const Config& config) {
     GET_TENSOR_DATA(dataset_ptr)
     utils::SetBuildOmpThread(config);
     knowhere::TimeRecorder build_time("Building HNSW cost");
-    index_->addPoint(p_data, 0);
-
-#pragma omp parallel for
-    for (int i = 1; i < rows; ++i) {
-        index_->addPoint((reinterpret_cast<const float*>(p_data) + Dim() * i), i);
-    }
+    index_->add((const float*)p_data, rows);
     build_time.RecordSection("");
-    LOG_KNOWHERE_INFO_ << "HNSW built with #points num:" << index_->max_elements_ << " #M:" << index_->M_
-                       << " #max level:" << index_->maxlevel_ << " #ef_construction:" << index_->ef_construction_
-                       << " #dim:" << *(size_t*)(index_->space_->get_dist_func_param());
+    LOG_KNOWHERE_INFO_ << "HNSW built with #points num:" << index_->max_elemnts() << " #M:" << index_->M()
+                       << " #max level:" << index_->maxlevel() << " #ef_construction:" << index_->ef_construction()
+                       << " #dim:" << index_->dim();
 }
 
 DatasetPtr
 IndexHNSW::GetVectorById(const DatasetPtr& dataset_ptr, const Config& config) {
-    if (!index_) {
-        KNOWHERE_THROW_MSG("index not initialize");
-    }
-
-    GET_DATA_WITH_IDS(dataset_ptr)
-
-    float* p_x = nullptr;
-    try {
-        p_x = new float[dim * rows];
-        for (int64_t i = 0; i < rows; i++) {
-            int64_t id = p_ids[i];
-            KNOWHERE_THROW_IF_NOT_FMT(id >= 0 && id < index_->cur_element_count, "invalid id %ld", id);
-            memcpy(p_x + i * dim, index_->getDataByInternalId(id), dim * sizeof(float));
-        }
-    } catch (std::exception& e) {
-        if (p_x != nullptr) {
-            delete[] p_x;
-        }
-        KNOWHERE_THROW_MSG(e.what());
-    }
-    return GenResultDataset(p_x);
+    // Unsupported
+    KNOWHERE_THROW_MSG("GetVectorById not supported yet");
 }
 
 DatasetPtr
@@ -197,12 +217,12 @@ IndexHNSW::GetIndexMeta(const Config& config) {
     const int64_t default_index_overview_levels = 3;
     auto overview_levels = CheckKeyInConfig(config, indexparam::OVERVIEW_LEVELS) ? GetIndexParamOverviewLevels(config)
                                                                                  : default_index_overview_levels;
-    feder::hnsw::HNSWMeta meta(index_->ef_construction_, index_->M_, index_->cur_element_count, index_->maxlevel_,
-                               index_->enterpoint_node_, overview_levels);
+    feder::hnsw::HNSWMeta meta(index_->ef_construction(), index_->M(), index_->cur_count(), index_->maxlevel(),
+                               index_->entry_point(), overview_levels);
     std::unordered_set<int64_t> id_set;
 
     for (int i = 0; i < overview_levels; i++) {
-        int64_t level = index_->maxlevel_ - i;
+        int64_t level = index_->maxlevel() - i;
         // do not record level 0
         if (level <= 0)
             break;
@@ -221,7 +241,7 @@ IndexHNSW::Count() {
     if (!index_) {
         KNOWHERE_THROW_MSG("index not initialize");
     }
-    return index_->cur_element_count;
+    return index_->cur_count();
 }
 
 int64_t
@@ -229,7 +249,7 @@ IndexHNSW::Dim() {
     if (!index_) {
         KNOWHERE_THROW_MSG("index not initialize");
     }
-    return (*static_cast<size_t*>(index_->dist_func_param_));
+    return index_->dim();
 }
 
 int64_t
@@ -254,7 +274,7 @@ IndexHNSW::QueryImpl(int64_t n, const float* xq, int64_t k, float* distances, in
 
     size_t ef = GetIndexParamEf(config);
     hnswlib::SearchParam param{ef};
-    bool transform = (index_->metric_type_ == 1);  // InnerProduct: 1
+    bool transform = (index_->metric_type() == 1);  // InnerProduct: 1
 
     std::vector<std::future<void>> futures;
     futures.reserve(n);
@@ -299,7 +319,7 @@ IndexHNSW::QueryByRangeImpl(int64_t n, const float* xq, float*& distances, int64
     float radius = GetMetaRadius(config);
     bool range_filter_exist = CheckKeyInConfig(config, meta::RANGE_FILTER);
     float range_filter = range_filter_exist ? GetMetaRangeFilter(config) : (1.0 / 0.0);
-    bool is_ip = (index_->metric_type_ == 1);  // L2: 0, InnerProduct: 1
+    bool is_ip = (index_->metric_type() == 1);  // L2: 0, InnerProduct: 1
 
     std::vector<std::vector<int64_t>> result_id_array(n);
     std::vector<std::vector<float>> result_dist_array(n);
@@ -339,17 +359,17 @@ IndexHNSW::QueryByRangeImpl(int64_t n, const float* xq, float*& distances, int64
 
 void
 IndexHNSW::UpdateLevelLinkList(int32_t level, feder::hnsw::HNSWMeta& meta, std::unordered_set<int64_t>& id_set) {
-    KNOWHERE_THROW_IF_NOT_FMT((level > 0 && level <= index_->maxlevel_), "Illegal level %d", level);
-    if (index_->cur_element_count == 0) {
+    KNOWHERE_THROW_IF_NOT_FMT((level > 0 && level <= index_->maxlevel()), "Illegal level %d", level);
+    if (index_->cur_count() == 0) {
         return;
     }
 
     std::vector<hnswlib::tableint> level_elements;
 
     // get all elements in current level
-    for (size_t i = 0; i < index_->cur_element_count; i++) {
+    for (size_t i = 0; i < index_->cur_count(); i++) {
         // elements in high level also exist in low level
-        if (index_->element_levels_[i] >= level) {
+        if (index_->element_level(i) >= level) {
             level_elements.emplace_back(i);
         }
     }
