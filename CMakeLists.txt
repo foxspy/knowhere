@@ -40,7 +40,6 @@ set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake" 
 include( UtilsKw )
 
 #******************* Build time, type and code version *****************
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 
 get_current_time( BUILD_TIME )
 message( STATUS "Build time = ${BUILD_TIME}" )
@@ -130,7 +129,7 @@ append_flags( CMAKE_CXX_FLAGS
                     "-fPIC"
                     "-DELPP_THREAD_SAFE"
                     "-fopenmp"
-                    "-march=native"
+                    "-march=cascadelake"
                     )
 
 # option "-rdynamic" is to print out detailed backtrace info for debug-ease

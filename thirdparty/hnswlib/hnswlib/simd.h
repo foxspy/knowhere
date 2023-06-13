@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/Log.h"
+
 #if defined(__AVX2__)
 #include <immintrin.h>
 #endif
@@ -7,6 +9,17 @@
 #include "hnswlib/hnswlib/bf16.h"
 
 namespace hnswlib {
+
+inline int simd_init = [] {
+#if defined(__AVX512VNNI__)
+    LOG_KNOWHERE_INFO_ << "VNNI instruction enabled.";
+#elif defined(__AVX512F__)
+    LOG_KNOWHERE_INFO_ << "VNNI instruction disabled, AVX512 instruction enabled.";
+#else
+    LOG_KNOWHERE_INFO_ << "AVX512 instruction disabled. ";
+#endif
+    return 0;
+}();
 
 __attribute__((__always_inline__)) inline void
 prefetch_L1(const void* address) {
