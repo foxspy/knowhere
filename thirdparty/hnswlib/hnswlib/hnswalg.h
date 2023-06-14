@@ -1074,17 +1074,12 @@ class HierarchicalNSW : public HNSWInterface<dist_t> {
             std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst>
                 top_candidates;
             size_t ef = param->ef_;
-            size_t refine_ef = ef;
-            if constexpr (QuantType::enable_refine) {
-                constexpr size_t refine_mul = 2;
-                refine_ef = std::max(refine_ef, k * refine_mul);
-            }
             if (!bitset.empty()) {
-                top_candidates = searchBaseLayerST<true, true>(currObj, computer, std::max(refine_ef, k), bitset, param,
-                                                               feder_result);
+                top_candidates =
+                    searchBaseLayerST<true, true>(currObj, computer, std::max(ef, k), bitset, param, feder_result);
             } else {
-                top_candidates = searchBaseLayerST<false, true>(currObj, computer, std::max(refine_ef, k), bitset,
-                                                                param, feder_result);
+                top_candidates =
+                    searchBaseLayerST<false, true>(currObj, computer, std::max(ef, k), bitset, param, feder_result);
             }
             if constexpr (!std::is_same_v<typename std::decay_t<decltype(computer)>::dist_type, dist_t>) {
                 refineCandidates(top_candidates, (const float*)query_data);
