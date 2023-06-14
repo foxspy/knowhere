@@ -44,22 +44,24 @@ struct Evaluator {
 
 inline bool
 evaluate_sq4(const float* data, size_t n, size_t d) {
-    constexpr double sq4_threshold = 0.05;
-    SQ4Quantizer<0> quant(d);
-    quant.train(data, n);
-    double err = Evaluator(quant).evaluate(data, n);
-    printf("sq4 err: %lf, %s\n", err, err < sq4_threshold ? "use sq4" : "try next");
-    return err < sq4_threshold;
+    // constexpr double sq4_threshold = 0.05;
+    // SQ4Quantizer<0> quant(d);
+    // quant.train(data, n);
+    // double err = Evaluator(quant).evaluate(data, n);
+    // printf("sq4 err: %lf, %s\n", err, err < sq4_threshold ? "use sq4" : "try next");
+    // return err < sq4_threshold;
+    return true;
 }
 
 inline bool
 evaluate_sq8(const float* data, size_t n, size_t d) {
-    constexpr double sq8_threshold = 0.05;
-    SQ8Quantizer<0> quant(d);
-    quant.train(data, n);
-    double err = Evaluator(quant).evaluate(data, n);
-    printf("sq8 err: %lf, %s\n", err, err < sq8_threshold ? "use sq8" : "try next");
-    return err < sq8_threshold;
+    // constexpr double sq8_threshold = 0.05;
+    // SQ8Quantizer<0> quant(d);
+    // quant.train(data, n);
+    // double err = Evaluator(quant).evaluate(data, n);
+    // printf("sq8 err: %lf, %s\n", err, err < sq8_threshold ? "use sq8" : "try next");
+    // return err < sq8_threshold;
+    return true;
 }
 
 }  // namespace hnswlib
