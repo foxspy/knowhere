@@ -5,7 +5,6 @@
 #include "common/Log.h"
 #include "hnswlib/hnswlib/bf16_quant.h"
 #include "hnswlib/hnswlib/calibrator.h"
-#include "hnswlib/hnswlib/evaluator.h"
 #include "hnswlib/hnswlib/quant.h"
 #include "hnswlib/hnswlib/simd.h"
 
@@ -30,7 +29,6 @@ struct SQ8Quantizer : Template {
     SQ8Quantizer() = default;
 
     explicit SQ8Quantizer(int dim) : Template(dim), calibrator(dim), refiner(dim) {
-        LOG_KNOWHERE_INFO_ << "Using SQ8 Quantizer, dim = " << dim;
     }
 
     void
