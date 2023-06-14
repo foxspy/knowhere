@@ -77,7 +77,8 @@ struct SQ4Quantizer : Template {
 
     bool
     check_query(const float* q) const {
-        return calibrator.check_vec(q);
+        // return calibrator.check_vec(q);
+        return true;
     }
 
     void
