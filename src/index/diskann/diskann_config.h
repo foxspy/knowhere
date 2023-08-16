@@ -84,11 +84,6 @@ class DiskANNConfig : public BaseConfig {
             .description("metric type")
             .for_train_and_search()
             .for_deserialize();
-        KNOWHERE_CONFIG_DECLARE_FIELD(index_prefix)
-            .description("path to load or save Diskann.")
-            .for_train()
-            .for_deserialize();
-        KNOWHERE_CONFIG_DECLARE_FIELD(data_path).description("raw data path.").for_train();
         KNOWHERE_CONFIG_DECLARE_FIELD(max_degree)
             .description("the degree of the graph index.")
             .set_default(48)

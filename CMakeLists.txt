@@ -47,6 +47,8 @@ if(WITH_CCACHE)
   endif()
 endif()
 
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/)
+
 if(WITH_RAFT)
   if("${CMAKE_CUDA_ARCHITECTURES}" STREQUAL "")
     set(CMAKE_CUDA_ARCHITECTURES 80;75;70;61)
@@ -129,7 +131,7 @@ list(APPEND KNOWHERE_LINKER_LIBS nlohmann_json::nlohmann_json)
 list(APPEND KNOWHERE_LINKER_LIBS prometheus-cpp::core prometheus-cpp::push)
 list(APPEND KNOWHERE_LINKER_LIBS ${FOLLY_LIBRARIES})
 
-add_library(knowhere SHARED ${KNOWHERE_SRCS})
+add_library(knowhere SHARED ${KNOWHERE_SRCS} include/knowhere/version.h include/knowhere/version.h)
 add_dependencies(knowhere ${KNOWHERE_LINKER_LIBS})
 if(WITH_RAFT)
   list(APPEND KNOWHERE_LINKER_LIBS raft::raft)

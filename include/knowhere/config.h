@@ -26,6 +26,7 @@
 
 #include "knowhere/expected.h"
 #include "knowhere/log.h"
+#include "knowhere/version.h"
 #include "nlohmann/json.hpp"
 
 namespace knowhere {
@@ -492,6 +493,10 @@ const float defaultRangeFilter = 1.0f / 0.0;
 class BaseConfig : public Config {
  public:
     CFG_STRING metric_type;
+    CFG_STRING version_code;
+    CFG_STRING data_path;
+    CFG_STRING index_prefix;
+    CFG_BOOL retrieve_friendly;
     CFG_INT k;
     CFG_INT num_build_thread;
     CFG_FLOAT radius;
@@ -506,6 +511,20 @@ class BaseConfig : public Config {
             .description("search for top k similar vector.")
             .set_range(1, std::numeric_limits<CFG_INT::value_type>::max())
             .for_search();
+        KNOWHERE_CONFIG_DECLARE_FIELD(version_code)
+            .description("version code")
+            .allow_empty_without_default()
+            .for_train()
+            .for_deserialize();
+        KNOWHERE_CONFIG_DECLARE_FIELD(data_path)
+            .description("raw data file path for index building.")
+            .allow_empty_without_default()
+            .for_train();
+        KNOWHERE_CONFIG_DECLARE_FIELD(index_prefix)
+            .description("workspace path for loading or saving for file-managed index.")
+            .allow_empty_without_default()
+            .for_train()
+            .for_deserialize();
         KNOWHERE_CONFIG_DECLARE_FIELD(num_build_thread)
             .description("index thread limit for build.")
             .allow_empty_without_default()

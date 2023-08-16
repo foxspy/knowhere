@@ -16,6 +16,7 @@
 #include "knowhere/comp/time_recorder.h"
 #include "knowhere/heap.h"
 #include "knowhere/utils.h"
+#include "knowhere/version.h"
 #include "utils.h"
 
 namespace {
@@ -107,4 +108,18 @@ TEST_CASE("Test Time Recorder") {
     }
     auto span = tr.ElapseFromBegin("done");
     REQUIRE(span > 0);
+}
+
+TEST_CASE("Test Version") {
+    REQUIRE(knowhere::Version("V1.2.2").Valid());
+    REQUIRE(knowhere::Version("v1.2.2").Valid());
+    REQUIRE(!knowhere::Version("1.2.2").Valid());
+    REQUIRE(!knowhere::Version("v1.2.2.2").Valid());
+    REQUIRE(!knowhere::Version("vx.2.2").Valid());
+    REQUIRE(!knowhere::Version("vx.2.2-hotfix").Valid());
+    REQUIRE(!knowhere::Version("v222.22").Valid());
+    REQUIRE(knowhere::Version::GetCurrentVersion().Valid());
+    REQUIRE(knowhere::Version::GetMinimalSupport().Valid());
+    REQUIRE(knowhere::Version::VersionSupport(knowhere::Version::GetMinimalSupport()));
+    REQUIRE(knowhere::Version::VersionSupport(knowhere::Version::GetCurrentVersion()));
 }

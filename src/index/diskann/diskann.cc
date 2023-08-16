@@ -261,6 +261,8 @@ DiskANNIndexNode<T>::Build(const DataSet& dataset, const Config& cfg) {
         LOG_KNOWHERE_ERROR_ << "Invalid metric type: " << build_conf.metric_type.value();
         return Status::invalid_metric_type;
     }
+    if (build_conf.index_prefix->empty() || build_conf.data_path->empty()) {
+    }
     if (AnyIndexFileExist(build_conf.index_prefix.value())) {
         LOG_KNOWHERE_ERROR_ << "This index prefix already has index files." << std::endl;
         return Status::diskann_file_error;
