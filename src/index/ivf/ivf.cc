@@ -45,7 +45,7 @@ struct QuantizerT<faiss::IndexBinaryIVF> {
 template <typename T>
 class IvfIndexNode : public IndexNode {
  public:
-    IvfIndexNode(const int32_t& /*version*/, const Object& object) : index_(nullptr) {
+    IvfIndexNode(const int32_t& version, const Object& object) : IndexNode(version), index_(nullptr) {
         static_assert(std::is_same<T, faiss::IndexIVFFlat>::value || std::is_same<T, faiss::IndexIVFFlatCC>::value ||
                           std::is_same<T, faiss::IndexIVFPQ>::value ||
                           std::is_same<T, faiss::IndexIVFScalarQuantizer>::value ||
@@ -664,7 +664,11 @@ IvfIndexNode<T>::Serialize(BinarySet& binset) const {
         if constexpr (std::is_same<T, faiss::IndexBinaryIVF>::value) {
             faiss::write_index_binary(index_.get(), &writer);
         } else {
-            faiss::write_index(index_.get(), &writer);
+            if (versoin_ <= Version::GetMinimalVersion()) {
+                faiss::write_index_nm(index_.get(), &writer);
+            } else {
+                faiss::write_index(index_.get(), &writer);
+            }
         }
         std::shared_ptr<uint8_t[]> data(writer.data());
         binset.Append(Type(), data, writer.tellg());
@@ -692,6 +696,7 @@ IvfIndexNode<T>::Deserialize(const BinarySet& binset, const Config& config) {
         if constexpr (std::is_same<T, faiss::IndexIVFFlat>::value) {
             auto raw_binary = binset.GetByName("RAW_DATA");
             if (raw_binary != nullptr) {
+                LOG_KNOWHERE_INFO_ << "Deserialize from Raw Data";
                 const BaseConfig& base_cfg = static_cast<const BaseConfig&>(config);
                 ConvertIVFFlatIfNeeded(binset, base_cfg.metric_type.value(), raw_binary->data.get(), raw_binary->size);
                 // after conversion, binary size and data will be updated

@@ -82,6 +82,7 @@ InvertedLists* read_InvertedLists(IOReader* reader, int io_flags = 0);
 void read_ivf_header(IndexIVF* ivf, IOReader* f,
                      std::vector<std::vector<Index::idx_t>>* ids = nullptr);
 void read_InvertedLists_nm(IndexIVF *ivf, IOReader *f, int io_flags = 0);
+void write_index_nm(const Index* idx, IOWriter* writer);
 } // namespace faiss
 
 #endif
