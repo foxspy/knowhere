@@ -110,7 +110,7 @@ public:
 
 class IndexWrap {
  public:
-    IndexWrap(const std::string& name, const std::string& version) {
+    IndexWrap(const std::string& name, const int32_t& version) {
         GILReleaser rel;
         if (knowhere::UseDiskLoad(name, version)) {
             std::shared_ptr<knowhere::FileManager> file_manager = std::make_shared<knowhere::LocalFileManager>();
