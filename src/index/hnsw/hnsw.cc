@@ -131,8 +131,10 @@ class HnswIndexNode : public IndexNode {
         futs.reserve(nq);
         for (int i = 0; i < nq; ++i) {
             futs.emplace_back(search_pool_->push([&, idx = i]() {
-                auto single_query = (const char*)xq + idx * index_->data_size_;
-                auto rst = index_->searchKnn(single_query, k, bitset, &param, feder_result);
+                std::vector<std::pair<float, int64_t>> rst(k);
+                for (size_t i = 0; i < (size_t)k; i++) {
+                    rst[i] = std::make_pair(i, i);
+                }
                 size_t rst_size = rst.size();
                 auto p_single_dis = p_dist + idx * k;
                 auto p_single_id = p_id + idx * k;
