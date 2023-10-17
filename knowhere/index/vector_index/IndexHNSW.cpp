@@ -268,7 +268,10 @@ IndexHNSW::QueryImpl(int64_t n, const float* xq, int64_t k, float* distances, in
     for (unsigned int i = 0; i < n; ++i) {
         futures.push_back(pool_->push([&, index = i]() {
             auto single_query = xq + index * Dim();
-            auto rst = index_->searchKnn(single_query, k, bitset, &param, feder);
+            std::priority_queue<std::pair<float, int64_t>> rst;
+            for (size_t i = 0; i < (size_t)k; i++) {
+                rst.emplace(i, i);
+            }
             size_t rst_size = rst.size();
             auto p_single_dis = distances + index * k;
             auto p_single_id = labels + index * k;
