@@ -14,29 +14,34 @@
 #include <vector>
 namespace knowhere {
 
-void
-ExecOverSearchThreadPool(std::vector<std::function<void()>>& tasks);
-void
-ExecOverBuildThreadPool(std::vector<std::function<void()>>& tasks);
-void
-InitBuildThreadPool(uint32_t num_threads);
-void
-InitSearchThreadPool(uint32_t num_threads);
-size_t
-GetSearchThreadPoolSize();
-size_t
-GetBuildThreadPoolSize();
-class ThreadPool {
- public:
+    void
+    ExecOverSearchThreadPool(std::vector<std::function<void()>> &tasks);
+
+    void
+    ExecOverBuildThreadPool(std::vector<std::function<void()>> &tasks);
+
+    void
+    InitBuildThreadPool(uint32_t num_threads);
+
+    void
+    InitSearchThreadPool(uint32_t num_threads);
+
+    size_t
+    GetSearchThreadPoolSize();
+
+    size_t
+    GetBuildThreadPoolSize();
+
     class ScopedOmpSetter {
         int omp_before;
 
-     public:
+    public:
         explicit ScopedOmpSetter(int num_threads = 0);
+
         ~ScopedOmpSetter();
     };
-};
-std::unique_ptr<ThreadPool::ScopedOmpSetter>
+
+std::unique_ptr<knowhere::ScopedOmpSetter>
 CreateScopeOmpSetter(int num_threads = 0);
 
 }  // namespace knowhere

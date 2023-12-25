@@ -40,6 +40,7 @@ enum class Status {
     raft_inner_error = 18,
     invalid_binary_set = 19,
     invalid_instruction_set = 20,
+    cardinal_inner_error = 100,
 };
 
 inline std::string

@@ -31,6 +31,7 @@
 #include "knowhere/feder/IVFFlat.h"
 #include "knowhere/log.h"
 #include "knowhere/utils.h"
+#include "knowhere/comp/task.h"
 
 namespace knowhere {
 
@@ -247,11 +248,11 @@ template <typename T>
 Status
 IvfIndexNode<T>::Train(const DataSet& dataset, const Config& cfg) {
     const BaseConfig& base_cfg = static_cast<const IvfConfig&>(cfg);
-    std::unique_ptr<ThreadPool::ScopedOmpSetter> setter;
+    std::unique_ptr<ScopedOmpSetter> setter;
     if (base_cfg.num_build_thread.has_value()) {
-        setter = std::make_unique<ThreadPool::ScopedOmpSetter>(base_cfg.num_build_thread.value());
+        setter = std::make_unique<ScopedOmpSetter>(base_cfg.num_build_thread.value());
     } else {
-        setter = std::make_unique<ThreadPool::ScopedOmpSetter>();
+        setter = std::make_unique<ScopedOmpSetter>();
     }
 
     bool is_cosine = IsMetricType(base_cfg.metric_type.value(), knowhere::metric::COSINE);
@@ -438,11 +439,11 @@ IvfIndexNode<T>::Add(const DataSet& dataset, const Config& cfg) {
     auto data = dataset.GetTensor();
     auto rows = dataset.GetRows();
     const BaseConfig& base_cfg = static_cast<const IvfConfig&>(cfg);
-    std::unique_ptr<ThreadPool::ScopedOmpSetter> setter;
+    std::unique_ptr<ScopedOmpSetter> setter;
     if (base_cfg.num_build_thread.has_value()) {
-        setter = std::make_unique<ThreadPool::ScopedOmpSetter>(base_cfg.num_build_thread.value());
+        setter = std::make_unique<ScopedOmpSetter>(base_cfg.num_build_thread.value());
     } else {
-        setter = std::make_unique<ThreadPool::ScopedOmpSetter>();
+        setter = std::make_unique<ScopedOmpSetter>();
     }
     try {
         if constexpr (std::is_same<faiss::IndexBinaryIVF, T>::value) {
@@ -487,7 +488,7 @@ IvfIndexNode<T>::Search(const DataSet& dataset, const Config& cfg, const BitsetV
         futs.reserve(rows);
         for (int i = 0; i < rows; ++i) {
             futs.emplace_back(search_pool_->push([&, index = i] {
-                ThreadPool::ScopedOmpSetter setter(1);
+                ScopedOmpSetter setter(1);
                 auto offset = k * index;
                 std::unique_ptr<float[]> copied_query = nullptr;
 
@@ -611,7 +612,7 @@ IvfIndexNode<T>::RangeSearch(const DataSet& dataset, const Config& cfg, const Bi
         futs.reserve(nq);
         for (int i = 0; i < nq; ++i) {
             futs.emplace_back(search_pool_->push([&, index = i] {
-                ThreadPool::ScopedOmpSetter setter(1);
+                ScopedOmpSetter setter(1);
                 faiss::RangeSearchResult res(1);
                 std::unique_ptr<float[]> copied_query = nullptr;
 

@@ -24,6 +24,7 @@
 #include "knowhere/expected.h"
 #include "knowhere/log.h"
 #include "knowhere/utils.h"
+#include "knowhere/comp/task.h"
 
 namespace knowhere {
 
@@ -65,7 +66,7 @@ BruteForce::Search(const DataSetPtr base_dataset, const DataSetPtr query_dataset
     futs.reserve(nq);
     for (int i = 0; i < nq; ++i) {
         futs.emplace_back(pool->push([&, index = i] {
-            ThreadPool::ScopedOmpSetter setter(1);
+            ScopedOmpSetter setter(1);
             auto cur_labels = labels + topk * index;
             auto cur_distances = distances + topk * index;
 
@@ -163,7 +164,7 @@ BruteForce::SearchWithBuf(const DataSetPtr base_dataset, const DataSetPtr query_
     futs.reserve(nq);
     for (int i = 0; i < nq; ++i) {
         futs.emplace_back(pool->push([&, index = i] {
-            ThreadPool::ScopedOmpSetter setter(1);
+            ScopedOmpSetter setter(1);
             auto cur_labels = labels + topk * index;
             auto cur_distances = distances + topk * index;
 
@@ -270,7 +271,7 @@ BruteForce::RangeSearch(const DataSetPtr base_dataset, const DataSetPtr query_da
     futs.reserve(nq);
     for (int i = 0; i < nq; ++i) {
         futs.emplace_back(pool->push([&, index = i] {
-            ThreadPool::ScopedOmpSetter setter(1);
+            ScopedOmpSetter setter(1);
             faiss::RangeSearchResult res(1);
 
             BitsetViewIDSelector bw_idselector(bitset);

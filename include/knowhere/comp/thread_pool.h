@@ -110,6 +110,11 @@ class ThreadPool {
         }
     }
 
+    static uint32_t
+    GetGlobalBuildPoolSize() {
+        return global_build_thread_pool_size_;
+    }
+
     static void
     InitGlobalBuildThreadPool(uint32_t num_threads) {
         InitThreadPool(num_threads, global_build_thread_pool_size_);
@@ -156,24 +161,6 @@ class ThreadPool {
         static auto pool = std::make_shared<ThreadPool>(global_search_thread_pool_size_, "Knowhere_Search");
         return pool;
     }
-
-    class ScopedOmpSetter {
-        int omp_before;
-
-     public:
-        explicit ScopedOmpSetter(int num_threads = 0) {
-            if (global_build_thread_pool_size_ == 0) {  // this should not happen in prod
-                omp_before = omp_get_max_threads();
-            } else {
-                omp_before = global_build_thread_pool_size_;
-            }
-
-            omp_set_num_threads(num_threads <= 0 ? omp_before : num_threads);
-        }
-        ~ScopedOmpSetter() {
-            omp_set_num_threads(omp_before);
-        }
-    };
 
  private:
     folly::CPUThreadPoolExecutor pool_;

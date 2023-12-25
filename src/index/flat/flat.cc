@@ -9,6 +9,8 @@
 // is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 // or implied. See the License for the specific language governing permissions and limitations under the License.
 
+#include <faiss/impl/AuxIndexStructures.h>
+
 #include "common/metric.h"
 #include "common/range_util.h"
 #include "faiss/IndexBinaryFlat.h"
@@ -21,6 +23,7 @@
 #include "knowhere/factory.h"
 #include "knowhere/log.h"
 #include "knowhere/utils.h"
+#include "knowhere/comp/task.h"
 
 namespace knowhere {
 
@@ -91,7 +94,7 @@ class FlatIndexNode : public IndexNode {
             futs.reserve(nq);
             for (int i = 0; i < nq; ++i) {
                 futs.emplace_back(search_pool_->push([&, index = i] {
-                    ThreadPool::ScopedOmpSetter setter(1);
+                    ScopedOmpSetter setter(1);
                     auto cur_ids = ids + k * index;
                     auto cur_dis = distances + k * index;
 
@@ -178,7 +181,7 @@ class FlatIndexNode : public IndexNode {
             futs.reserve(nq);
             for (int i = 0; i < nq; ++i) {
                 futs.emplace_back(search_pool_->push([&, index = i] {
-                    ThreadPool::ScopedOmpSetter setter(1);
+                    ScopedOmpSetter setter(1);
                     faiss::RangeSearchResult res(1);
 
                     BitsetViewIDSelector bw_idselector(bitset);

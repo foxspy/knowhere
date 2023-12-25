@@ -19,6 +19,8 @@
 #include <utility>
 
 #include "knowhere/comp/thread_pool.h"
+#include "knowhere/comp/task.h"
+
 namespace knowhere {
 
 void
@@ -28,7 +30,7 @@ ExecOverSearchThreadPool(std::vector<std::function<void()>>& tasks) {
     futures.reserve(tasks.size());
     for (auto&& t : tasks) {
         futures.emplace_back(pool->push([&t]() {
-            ThreadPool::ScopedOmpSetter setter(1);
+            ScopedOmpSetter setter(1);
             t();
         }));
     }
@@ -50,7 +52,7 @@ ExecOverBuildThreadPool(std::vector<std::function<void()>>& tasks) {
     futures.reserve(tasks.size());
     for (auto&& t : tasks) {
         futures.emplace_back(pool->push([&t]() {
-            ThreadPool::ScopedOmpSetter setter(1);
+            ScopedOmpSetter setter(1);
             t();
         }));
     }
@@ -85,9 +87,24 @@ GetBuildThreadPoolSize() {
     return ThreadPool::GetGlobalBuildThreadPool()->size();
 }
 
-std::unique_ptr<ThreadPool::ScopedOmpSetter>
+ScopedOmpSetter::ScopedOmpSetter(int num_threads) {
+    auto global_build_thread_pool_size = ThreadPool::GetGlobalBuildThreadPool()->GetGlobalBuildPoolSize();
+    if (global_build_thread_pool_size == 0) {  // this should not happen in prod
+        omp_before = omp_get_max_threads();
+    } else {
+        omp_before = global_build_thread_pool_size;
+    }
+
+    omp_set_num_threads(num_threads <= 0 ? omp_before : num_threads);
+}
+
+ScopedOmpSetter::~ScopedOmpSetter() {
+    omp_set_num_threads(omp_before);
+}
+
+std::unique_ptr<ScopedOmpSetter>
 CreateScopeOmpSetter(int num_threads) {
-    return std::make_unique<ThreadPool::ScopedOmpSetter>(num_threads);
+    return std::make_unique<ScopedOmpSetter>(num_threads);
 }
 
 }  // namespace knowhere
