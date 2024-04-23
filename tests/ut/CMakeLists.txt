@@ -18,6 +18,7 @@ endif()
 
 if (WITH_CARDINAL)
   knowhere_file_glob(GLOB_RECURSE CARDINAL_UNSUPPORTED_TESTS test_iterator.cc test_feder.cc test_sparse.cc)
+  list(APPEND KNOWHERE_UT_SRCS ${CARDINAL_REPO_DIR}/know/test/test_cloud.cc)
   list(REMOVE_ITEM KNOWHERE_UT_SRCS ${CARDINAL_UNSUPPORTED_TESTS})
 else()
   knowhere_file_glob(GLOB_RECURSE KNOWHERE_CLUSTER_TESTS test_cluster.cc)
