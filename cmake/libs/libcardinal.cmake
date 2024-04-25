@@ -1,4 +1,4 @@
-set(CARDINAL_VERSION master)
+set(CARDINAL_VERSION add_skip_refine_test)
 set(CARDINAL_REPO_URL "https://github.com/zilliztech/cardinal.git")
 
 set(CARDINAL_REPO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cardinal")
