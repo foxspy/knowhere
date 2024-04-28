@@ -1,5 +1,5 @@
 # Use short SHA1 as version
-set(CARDINAL_VERSION 0bb6d57)
+set(CARDINAL_VERSION add_skip_refine_support)
 set(CARDINAL_REPO_URL "https://github.com/zilliztech/cardinal.git")
 
 set(CARDINAL_REPO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cardinal")
@@ -7,6 +7,7 @@ set(CARDINAL_REPO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cardinal")
 message(STATUS "Build Cardinal-${CARDINAL_VERSION}")
 
 if(NOT EXISTS "${CARDINAL_REPO_DIR}/.git")
+  message(STATUS "Clone cardinal Repo ${CARDINAL_REPO_URL}")
   execute_process(
     COMMAND git clone ${CARDINAL_REPO_URL} ${CARDINAL_REPO_DIR}
     RESULT_VARIABLE CARDINAL_CLONE_RESULT
@@ -20,7 +21,7 @@ if(NOT EXISTS "${CARDINAL_REPO_DIR}/.git")
 endif()
 
 # Always checkout the version specified as `CARDINAL_VERSION` unless `CARDINAL_SKIP_CHECKOUT` is set
-if(NOT $ENV{CARDINAL_SKIP_CHECKOUT})
+if(NOT DEFINED $ENV{CARDINAL_SKIP_CHECKOUT})
   message(STATUS "Checking out cardinal version ${CARDINAL_VERSION}")
 
   execute_process(
@@ -48,6 +49,8 @@ if(NOT $ENV{CARDINAL_SKIP_CHECKOUT})
     message(
       FATAL_ERROR "Failed to checkout cardinal: ${CARDINAL_CHECKOUT_ERROR}")
   endif()
+else()
+  message(STATUS "Skip checking out cardinal version ${CARDINAL_VERSION} for env $ENV{CARDINAL_SKIP_CHECKOUT} set")
 endif()
 
 include(${CARDINAL_REPO_DIR}/know/libcardinal.cmake)
