@@ -50,6 +50,9 @@ constexpr const char* INDEX_DISKANN = "DISKANN";
 
 constexpr const char* INDEX_SPARSE_INVERTED_INDEX = "SPARSE_INVERTED_INDEX";
 constexpr const char* INDEX_SPARSE_WAND = "SPARSE_WAND";
+
+constexpr const char* INDEX_CARDINAL_CAP = "CardinalCap";
+constexpr const char* INDEX_CARDINAL_Perf = "CardinalPerf";
 }  // namespace IndexEnum
 
 namespace ClusterEnum {
