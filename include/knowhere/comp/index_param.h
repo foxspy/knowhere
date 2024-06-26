@@ -58,6 +58,9 @@ constexpr const char* INDEX_FAISS_HNSW_SQ = "FAISS_HNSW_SQ";
 constexpr const char* INDEX_FAISS_HNSW_PQ = "FAISS_HNSW_PQ";
 constexpr const char* INDEX_FAISS_HNSW_PRQ = "FAISS_HNSW_PRQ";
 
+constexpr const char* INDEX_CARDINAL_PERF = "CardinalPerf";
+constexpr const char* INDEX_CARDINAL_CAP = "CardinalCap";
+
 constexpr const char* INDEX_SPARSE_INVERTED_INDEX = "SPARSE_INVERTED_INDEX";
 constexpr const char* INDEX_SPARSE_WAND = "SPARSE_WAND";
 }  // namespace IndexEnum
