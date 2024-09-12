@@ -66,6 +66,12 @@ class DiskANNIndexNode : public IndexNode {
     expected<DataSetPtr>
     GetVectorByIds(const DataSetPtr dataset) const override;
 
+    static bool
+    StaticHasRawData(const knowhere::BaseConfig& config, const IndexVersion& version) {
+        knowhere::MetricType metric_type = config.metric_type.has_value() ? config.metric_type.value() : "";
+        return IsMetricType(metric_type, metric::L2) || IsMetricType(metric_type, metric::COSINE);
+    }
+
     bool
     HasRawData(const std::string& metric_type) const override {
         return IsMetricType(metric_type, metric::L2) || IsMetricType(metric_type, metric::COSINE);
@@ -80,6 +86,14 @@ class DiskANNIndexNode : public IndexNode {
         return Status::success;
     }
 
+    static expected<Resource>
+    StaticEstimateLoadResource(const float file_size, const knowhere::BaseConfig& config) {
+        // diskann use 1/8 pq compression, and 1/10 for search cache. The total memory resource can be estimated as 1/4
+        // compared with the raw data we can not use pq_code_budget_gb / search_cache_budget_gb here, because these two
+        // configs can not be got during load stage.
+        return Resource{file_size * 0.25f, file_size};
+    }
+
     Status
     Deserialize(const BinarySet& binset, const Config& cfg) override;
 
@@ -89,9 +103,14 @@ class DiskANNIndexNode : public IndexNode {
         return Status::not_implemented;
     }
 
+    static std::unique_ptr<BaseConfig>
+    StaticCreateConfig() {
+        return std::make_unique<DiskANNConfig>();
+    }
+
     std::unique_ptr<BaseConfig>
     CreateConfig() const override {
-        return std::make_unique<DiskANNConfig>();
+        return StaticCreateConfig();
     }
 
     Status

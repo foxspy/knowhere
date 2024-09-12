@@ -191,7 +191,7 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
         // to an uncertain address)
         if (name != knowhere::IndexEnum::INDEX_FAISS_IVFSQ_CC) {
             REQUIRE(idx.HasRawData(json[knowhere::meta::METRIC_TYPE]) ==
-                    knowhere::KnowhereCheck::IndexHasRawData<knowhere::fp32>(name, metric, version, json));
+                    knowhere::IndexStaticFaced<knowhere::fp32>::HasRawData(name, version, json));
         }
 
         auto results = idx.Search(query_ds, json, nullptr);

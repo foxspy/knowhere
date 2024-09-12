@@ -66,6 +66,7 @@ enum PARAM_TYPE {
     DESERIALIZE_FROM_FILE = 1 << 5,
     ITERATOR = 1 << 6,
     CLUSTER = 1 << 7,
+    STATIC = 1 << 8,
 };
 
 template <>
@@ -212,6 +213,12 @@ class EntryAccess {
     EntryAccess&
     description(const std::string& desc) {
         entry->desc = desc;
+        return *this;
+    }
+
+    EntryAccess&
+    for_static() {
+        entry->type |= PARAM_TYPE::STATIC;
         return *this;
     }
 
@@ -533,6 +540,7 @@ class BaseConfig : public Config {
             .set_default("L2")
             .description("metric type")
             .for_train_and_search()
+            .for_static()
             .for_iterator()
             .for_deserialize()
             .for_deserialize_from_file();

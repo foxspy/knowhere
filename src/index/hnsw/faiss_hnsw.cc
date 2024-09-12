@@ -833,9 +833,14 @@ class BaseFaissRegularIndexHNSWFlatNode : public BaseFaissRegularIndexHNSWNode {
         : BaseFaissRegularIndexHNSWNode(version, object, data_format) {
     }
 
+    static std::unique_ptr<BaseConfig>
+    StaticCreateConfig() {
+        return std::make_unique<FaissHnswFlatConfig>();
+    }
+
     std::unique_ptr<BaseConfig>
     CreateConfig() const override {
-        return std::make_unique<FaissHnswFlatConfig>();
+        return StaticCreateConfig();
     }
 
     std::string
@@ -1051,10 +1056,14 @@ class BaseFaissRegularIndexHNSWSQNode : public BaseFaissRegularIndexHNSWNode {
     BaseFaissRegularIndexHNSWSQNode(const int32_t& version, const Object& object, DataFormatEnum data_format)
         : BaseFaissRegularIndexHNSWNode(version, object, data_format) {
     }
+    static std::unique_ptr<BaseConfig>
+    StaticCreateConfig() {
+        return std::make_unique<FaissHnswSqConfig>();
+    }
 
     std::unique_ptr<BaseConfig>
     CreateConfig() const override {
-        return std::make_unique<FaissHnswSqConfig>();
+        return StaticCreateConfig();
     }
 
     std::string
@@ -1150,9 +1159,14 @@ class BaseFaissRegularIndexHNSWPQNode : public BaseFaissRegularIndexHNSWNode {
         : BaseFaissRegularIndexHNSWNode(version, object, data_format) {
     }
 
+    static std::unique_ptr<BaseConfig>
+    StaticCreateConfig() {
+        return std::make_unique<FaissHnswPqConfig>();
+    }
+
     std::unique_ptr<BaseConfig>
     CreateConfig() const override {
-        return std::make_unique<FaissHnswPqConfig>();
+        return StaticCreateConfig();
     }
 
     std::string
@@ -1338,9 +1352,14 @@ class BaseFaissRegularIndexHNSWPRQNode : public BaseFaissRegularIndexHNSWNode {
         : BaseFaissRegularIndexHNSWNode(version, object, data_format) {
     }
 
+    static std::unique_ptr<BaseConfig>
+    StaticCreateConfig() {
+        return std::make_unique<FaissHnswPrqConfig>();
+    }
+
     std::unique_ptr<BaseConfig>
     CreateConfig() const override {
-        return std::make_unique<FaissHnswPrqConfig>();
+        return StaticCreateConfig();
     }
 
     std::string
