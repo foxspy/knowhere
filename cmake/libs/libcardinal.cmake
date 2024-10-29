@@ -1,5 +1,5 @@
 # Use short SHA1 as version
-set(CARDINAL_VERSION v2.4.12 )
+set(CARDINAL_VERSION add_batch_search_interface_bak )
 set(CARDINAL_REPO_URL "https://github.com/zilliztech/cardinal.git")
 
 set(CARDINAL_REPO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cardinal")
@@ -27,7 +27,12 @@ if (NOT EXISTS "${CARDINAL_REPO_DIR}/.git")
         if (NOT CARDINAL_CHECKOUT_RESULT EQUAL "0")
             message(FATAL_ERROR "Failed to checkout cardinal: ${CARDINAL_CHECKOUT_ERROR}")
         else()
-            message(STATUS "Successfully checkout Cardinal Version : ${CARDINAL_VERSION}")
+            execute_process(
+                    COMMAND git -C ${CARDINAL_REPO_DIR} rev-parse HEAD
+                    OUTPUT_VARIABLE GIT_COMMIT_HASH
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            message(STATUS "Successfully checkout Cardinal Version : ${CARDINAL_VERSION}, Commit : ${GIT_COMMIT_HASH}")
         endif()
     endif()
 else()
