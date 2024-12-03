@@ -22,7 +22,7 @@ if(__X86_64)
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -fno-omit-frame-pointer -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 if(WITH_RAFT)
   set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -g -Xcompiler=-w ")
