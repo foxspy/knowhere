@@ -14,6 +14,8 @@
 #include <optional>
 #include <string>
 
+#include "io_stream.h"
+
 namespace knowhere {
 
 /**
@@ -43,6 +45,16 @@ class FileManager {
      */
     virtual bool
     AddFile(const std::string& filename) noexcept = 0;
+
+    /**
+     * @brief Upload a file to target, such as remote object storage
+     *
+     * @param inputStream
+     * @param filename
+     * @return false if any error, or return true.
+     */
+    virtual bool
+    UploadFile(const knowhere::InputStream& inputStream, const std::string& filename) noexcept = 0;
 
     /**
      * @brief Check if a file exists.
