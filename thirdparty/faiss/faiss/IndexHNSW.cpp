@@ -162,7 +162,7 @@ void hnsw_add_vertices(
 
             bool interrupt = false;
 
-#pragma omp parallel if (i1 > i0 + 100)
+//#pragma omp parallel if (i1 > i0 + 100)
             {
                 VisitedTable vt(ntotal);
 
@@ -175,7 +175,7 @@ void hnsw_add_vertices(
                 // here we should do schedule(dynamic) but this segfaults for
                 // some versions of LLVM. The performance impact should not be
                 // too large when (i1 - i0) / num_threads >> 1
-#pragma omp for schedule(static)
+//#pragma omp for schedule(static)
                 for (int i = i0; i < i1; i++) {
                     storage_idx_t pt_id = order[i];
                     dis->set_query(x + (pt_id - n0) * d);
