@@ -51,10 +51,10 @@ class FileManager {
      *
      * @param inputStream
      * @param filename
-     * @return false if any error, or return true.
+     * @return  Add file to FileManager to manipulate it through a input stream.
      */
     virtual bool
-    UploadFile(const knowhere::InputStream& inputStream, const std::string& filename) noexcept = 0;
+    AddFileWithStream(const knowhere::InputStream& inputStream, const std::string& filename) noexcept = 0;
 
     /**
      * @brief Check if a file exists.
