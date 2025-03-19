@@ -69,3 +69,6 @@ CMakeUserPresets.json
 # python
 .eggs
 *.egg-info
+
+
+.clangd

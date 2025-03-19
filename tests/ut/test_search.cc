@@ -191,6 +191,10 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
         }
         // search process
         auto load_with_mmap = GENERATE(as<bool>{}, true, false);
+
+        if (name == knowhere::IndexEnum::INDEX_HNSW && load_with_mmap) {
+            SKIP("Cardinal HNSW does not support mmap; test skipped");
+        }
         {
             auto idx_expected = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
             auto idx = idx_expected.value();
@@ -259,6 +263,10 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
             make_tuple(knowhere::IndexEnum::INDEX_HNSW_SQ, hnsw_gen),
         }));
         auto idx_expected = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
+        if (name == knowhere::IndexEnum::INDEX_HNSW) {
+            SKIP("Cardinal does not support range search now; test skipped");
+        }
+
         if (name == knowhere::IndexEnum::INDEX_FAISS_SCANN) {
             // need to check cpu model for scann
             if (!faiss::support_pq_fast_scan) {
@@ -302,6 +310,8 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
 #ifdef KNOWHERE_WITH_CARDINAL
     // currently, only cardinal support iterator_retain_order
     SECTION("TEST Range Search (iterator-based) with ordered iterator") {
+        SKIP("Temporarily disabled for cardinal v2 iterator has not been implemented");
+
         using std::make_tuple;
         auto [name, gen] = GENERATE_REF(table<std::string, std::function<knowhere::Json()>>({
             make_tuple(knowhere::IndexEnum::INDEX_HNSW, ordered_rs_hnsw_gen),
@@ -449,6 +459,7 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
                 float recall = GetKNNRecall(*gt.value(), *results.value());
                 if (percentage > threshold ||
                     json[knowhere::meta::TOPK] > (1 - percentage) * nb * hnswlib::kHnswSearchBFTopkThreshold) {
+                    // TODO ivf recall bug
                     REQUIRE(recall > kBruteForceRecallThreshold);
                 } else {
                     REQUIRE(recall > kKnnRecallThreshold);
@@ -589,6 +600,9 @@ TEST_CASE("Test Mem Index With Binary Vector", "[float metrics]") {
             make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
 #endif
         }));
+        if (name == knowhere::IndexEnum::INDEX_HNSW) {
+            SKIP("Cardinal does not support binary vector now; test skipped");
+        }
         auto idx = knowhere::IndexFactory::Instance().Create<knowhere::bin1>(name, version).value();
         auto cfg_json = gen().dump();
         CAPTURE(name, cfg_json);

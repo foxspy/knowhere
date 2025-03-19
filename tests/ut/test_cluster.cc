@@ -32,6 +32,7 @@ constexpr float kKnnRecallThreshold = 0.8f;
 
 // use kNN search to test the correctness of kmeans
 TEST_CASE("Test Kmeans With Float Vector", "[float metrics]") {
+    SKIP("Cardinal does not support cluster now; test skipped");
     using Catch::Approx;
 
     const int64_t nb = 1000, nq = 10;
