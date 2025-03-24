@@ -194,6 +194,9 @@ class Index {
     int64_t
     Size() const;
 
+    size_t
+    DataByteSize() const;
+
     int64_t
     Count() const;
 

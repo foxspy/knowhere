@@ -101,7 +101,7 @@ class BinarySet {
         return size;
     }
 
-    size_t 
+    size_t
     DataByteSize() const {
         return Size();
     }

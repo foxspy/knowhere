@@ -10,6 +10,7 @@
 // or implied. See the License for the specific language governing permissions and limitations under the License.
 
 #include "knowhere/index/index.h"
+#include <cstddef>
 
 #include "fmt/format.h"
 #include "folly/futures/Future.h"
@@ -370,6 +371,11 @@ Index<T>::Size() const {
 }
 
 template <typename T>
+size_t
+Index<T>::DataByteSize() const {
+    return static_cast<size_t>(Size());
+}
+
 inline int64_t
 Index<T>::Count() const {
     return this->node->Count();
