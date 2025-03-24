@@ -101,6 +101,11 @@ class BinarySet {
         return size;
     }
 
+    size_t 
+    DataByteSize() const {
+        return Size();
+    }
+
  public:
     std::map<std::string, BinaryPtr> binary_map_;
 };
