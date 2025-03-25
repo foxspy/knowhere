@@ -376,6 +376,7 @@ Index<T>::DataByteSize() const {
     return static_cast<size_t>(Size());
 }
 
+template <typename T>
 inline int64_t
 Index<T>::Count() const {
     return this->node->Count();
