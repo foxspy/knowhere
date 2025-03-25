@@ -371,7 +371,7 @@ Index<T>::Size() const {
 }
 
 template <typename T>
-size_t
+inline size_t
 Index<T>::DataByteSize() const {
     return static_cast<size_t>(Size());
 }
