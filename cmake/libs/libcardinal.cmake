@@ -1,6 +1,6 @@
 # Use short SHA1 as version
 set(CARDINAL_VERSION rabit_e2e_test )
-set(CARDINAL_REPO_URL "https://github.com/foxspy/cardinal.git")
+set(CARDINAL_REPO_URL "https://github.com/zilliztech/cardinal.git")
 
 set(CARDINAL_REPO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cardinal")
 
