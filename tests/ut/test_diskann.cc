@@ -17,7 +17,8 @@
 #include "index/diskann/diskann_config.h"
 #include "knowhere/comp/brute_force.h"
 #include "knowhere/comp/knowhere_check.h"
-#include "knowhere/comp/local_file_manager.h"
+#include "filemanager/FileManager.h"
+#include "filemanager/impl/LocalFileManager.h"
 #include "knowhere/expected.h"
 #include "knowhere/index/index_factory.h"
 #include "knowhere/utils.h"
@@ -125,7 +126,7 @@ TEST_CASE("Invalid diskann params test", "[diskann]") {
         json["max_k"] = 8000;
         return json;
     };
-    std::shared_ptr<knowhere::FileManager> file_manager = std::make_shared<knowhere::LocalFileManager>();
+    std::shared_ptr<milvus::FileManager> file_manager = std::make_shared<milvus::LocalFileManager>();
     auto diskann_index_pack = knowhere::Pack(file_manager);
     auto base_ds = GenDataSet(rows_num, kDim, 30);
     auto base_ptr = static_cast<const float*>(base_ds->GetTensor());
@@ -273,7 +274,7 @@ base_search() {
     }
 
     SECTION("Test search and range search") {
-        std::shared_ptr<knowhere::FileManager> file_manager = std::make_shared<knowhere::LocalFileManager>();
+        std::shared_ptr<milvus::FileManager> file_manager = std::make_shared<milvus::LocalFileManager>();
         auto diskann_index_pack = knowhere::Pack(file_manager);
         knowhere::Json deserialize_json = knowhere::Json::parse(deserialize_gen().dump());
         knowhere::BinarySet binset;
@@ -397,7 +398,7 @@ TEST_CASE("Test DiskANN GetVectorByIds", "[diskann]") {
         auto base_ptr = static_cast<const float*>(base_ds->GetTensor());
         WriteRawDataToDisk<float>(kRawDataPath, base_ptr, kNumRows, dim);
 
-        std::shared_ptr<knowhere::FileManager> file_manager = std::make_shared<knowhere::LocalFileManager>();
+        std::shared_ptr<milvus::FileManager> file_manager = std::make_shared<milvus::LocalFileManager>();
         auto diskann_index_pack = knowhere::Pack(file_manager);
 
         knowhere::DataSetPtr ds_ptr = nullptr;

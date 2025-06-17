@@ -251,3 +251,5 @@ if(__PPC64)
                                       knowhere_utils)
   target_compile_definitions(faiss PRIVATE FINTEGER=int)
 endif()
+
+include_directories(thirdparty/faiss)

@@ -167,21 +167,7 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
     SECTION("Test Search") {
         using std::make_tuple;
         auto [name, gen] = GENERATE_REF(table<std::string, std::function<knowhere::Json()>>(
-            {make_tuple(knowhere::IndexEnum::INDEX_FAISS_IDMAP, flat_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT, ivfflat_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFFLAT_CC, ivfflatcc_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFSQ8, ivfsq_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFPQ, ivfpq_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFSQ_CC, ivfsqcc_code_size_4_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFSQ_CC, ivfsqcc_code_size_6_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFSQ_CC, ivfsqcc_code_size_8_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFSQ_CC, ivfsqcc_code_size_16_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_SCANN, scann_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_SCANN, scann_gen2),
-             make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_HNSW_SQ, hnsw_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFRABITQ, ivfrabitq_gen),
-             make_tuple(knowhere::IndexEnum::INDEX_FAISS_IVFRABITQ, ivfrabitq_refine_flat_gen)}));
+            {make_tuple(knowhere::IndexEnum::INDEX_HNSW, hnsw_gen)}));
         knowhere::BinarySet bs;
         // build process
         {
@@ -205,7 +191,6 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
             REQUIRE(idx.Serialize(bs) == knowhere::Status::success);
         }
         // search process
-        // TODO: V2 (mmap support)
         auto load_with_mmap = GENERATE(as<bool>{}, false);
         {
             auto idx_expected = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);

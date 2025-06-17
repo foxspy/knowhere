@@ -22,7 +22,7 @@ if(NOT WITH_DISKANN)
 endif()
 
 if (WITH_CARDINAL)
-  # TODO: v2 ut remove test_faiss_hnsw.cc 
+  # TODO: v2 ut remove test_faiss_hnsw.cc
   knowhere_file_glob(GLOB_RECURSE CARDINAL_UNSUPPORTED_TESTS test_feder.cc test_faiss_hnsw.cc)
   list(REMOVE_ITEM KNOWHERE_UT_SRCS ${CARDINAL_UNSUPPORTED_TESTS})
 else()
@@ -39,7 +39,7 @@ if (NOT Catch2_FOUND)
   FetchContent_Declare(
     Catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-    GIT_TAG v3.1.1 # or a later release
+    GIT_TAG v3.3.1 # or a later release
   )
   FetchContent_MakeAvailable(Catch2)
 endif()

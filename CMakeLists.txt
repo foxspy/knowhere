@@ -87,8 +87,6 @@ include(cmake/utils/compile_flags.cmake)
 include(cmake/libs/libfaiss.cmake)
 include(cmake/libs/libhnsw.cmake)
 
-include_directories(thirdparty/faiss)
-
 find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
@@ -110,6 +108,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_OSX_DEPLOYMENT_TARGET
     "10.15"
     CACHE STRING "Minimum OS X deployment version" FORCE)
+
+include(cmake/libs/libmilvus-common.cmake)
 
 if(OPENMP_FOUND)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -186,6 +186,7 @@ list(APPEND KNOWHERE_LINKER_LIBS nlohmann_json::nlohmann_json)
 list(APPEND KNOWHERE_LINKER_LIBS prometheus-cpp::core prometheus-cpp::push)
 list(APPEND KNOWHERE_LINKER_LIBS fmt::fmt-header-only)
 list(APPEND KNOWHERE_LINKER_LIBS Folly::folly)
+list(APPEND KNOWHERE_LINKER_LIBS milvus-common)
 if(NOT WITH_LIGHT)
   list(APPEND KNOWHERE_LINKER_LIBS opentelemetry-cpp::opentelemetry_trace)
   list(APPEND KNOWHERE_LINKER_LIBS
@@ -216,6 +217,9 @@ if(WITH_CUVS)
 endif()
 target_link_libraries(knowhere PUBLIC ${KNOWHERE_LINKER_LIBS})
 target_include_directories(knowhere PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(knowhere PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/faiss)
+target_include_directories(knowhere PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/hnswlib)
+target_include_directories(knowhere PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/DiskANN/include)
 
 if(WITH_UT)
   add_subdirectory(tests/ut)
