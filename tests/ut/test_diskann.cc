@@ -302,8 +302,7 @@ base_search() {
             auto res = diskann.Search(query_ds, knn_json, nullptr);
             REQUIRE(res.has_value());
             auto knn_recall = GetKNNRecall(*knn_gt_ptr, *res.value());
-            // TODO: fix v2 diskann recall here
-            REQUIRE(knn_recall > 0.3);
+            REQUIRE(knn_recall > kKnnRecall);
 
             // knn search without cache file
             {
@@ -319,7 +318,7 @@ base_search() {
                 knowhere::Json knn_json = knowhere::Json::parse(knn_search_json);
                 auto res = diskann_tmp.Search(query_ds, knn_json, nullptr);
                 REQUIRE(res.has_value());
-                REQUIRE(GetKNNRecall(*knn_gt_ptr, *res.value()) >= 0.3);
+                REQUIRE(GetKNNRecall(*knn_gt_ptr, *res.value()) >= kKnnRecall);
             }
 
             // knn search with bitset
@@ -339,8 +338,7 @@ base_search() {
                         if (percentage == 0.98f) {
                             REQUIRE(recall >= 0.9f);
                         } else {
-                            // TODO: fix v2 diskann recall here
-                            REQUIRE(recall >= 0.3f);
+                            REQUIRE(recall >= kKnnRecall);
                         }
                     }
                 }
