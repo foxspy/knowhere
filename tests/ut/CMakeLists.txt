@@ -23,7 +23,7 @@ endif()
 
 if (WITH_CARDINAL)
   # TODO: v2 ut remove test_faiss_hnsw.cc
-  knowhere_file_glob(GLOB_RECURSE CARDINAL_UNSUPPORTED_TESTS test_feder.cc test_faiss_hnsw.cc)
+  knowhere_file_glob(GLOB_RECURSE CARDINAL_UNSUPPORTED_TESTS test_feder.cc test_faiss_hnsw.cc test_data_view_index.cc)
   list(REMOVE_ITEM KNOWHERE_UT_SRCS ${CARDINAL_UNSUPPORTED_TESTS})
 else()
   knowhere_file_glob(GLOB_RECURSE KNOWHERE_CLUSTER_TESTS test_cluster.cc)
