@@ -560,6 +560,8 @@ IvfIndexNode<DataType, IndexType>::TrainInternal(const DataSetPtr dataset, std::
         index->own_fields = true;
         // ivfflat_cc has no serialize stage, make map at build stage
         index->make_direct_map(true, faiss::DirectMap::ConcurrentArray);
+
+        LOG_KNOWHERE_INFO_ << "IndexIVFFlatCC train done, row_count: " << rows << ", nlist: " << nlist<<", ntotal: " << Count();
     }
     if constexpr (std::is_same<faiss::IndexIVFPQ, IndexType>::value) {
         const IvfPqConfig& ivf_pq_cfg = static_cast<const IvfPqConfig&>(*cfg);
@@ -704,6 +706,7 @@ IvfIndexNode<DataType, IndexType>::Add(const DataSetPtr dataset, std::shared_ptr
     }
     auto data = dataset->GetTensor();
     auto rows = dataset->GetRows();
+    auto before_count = Count();
     const BaseConfig& base_cfg = static_cast<const IvfConfig&>(*cfg);
     // use build_pool_ to make sure the OMP threads spawded by index_->add
     // can inherit the low nice value of threads in build_pool_.
@@ -728,6 +731,8 @@ IvfIndexNode<DataType, IndexType>::Add(const DataSetPtr dataset, std::shared_ptr
         LOG_KNOWHERE_WARNING_ << "faiss internal error: " << tryObj.exception().what();
         return Status::faiss_inner_error;
     }
+    auto after_count = Count();
+    LOG_KNOWHERE_INFO_ << "IndexIVFFlatCC Add done, row_count: " << rows << ", before_count: " << before_count << ", after_count: " << after_count;
     return Status::success;
 }
 
