@@ -104,7 +104,8 @@ endif()
 if(NOT WITH_LIGHT)
   find_package(opentelemetry-cpp REQUIRED)
 endif()
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON) # Require C++20 support
 set(CMAKE_OSX_DEPLOYMENT_TARGET
     "10.15"
     CACHE STRING "Minimum OS X deployment version" FORCE)
