@@ -190,7 +190,8 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
 
             REQUIRE(idx.Serialize(bs) == knowhere::Status::success);
         }
-        auto load_with_mmap = GENERATE(as<bool>{}, false, true);
+        // search process
+        auto load_with_mmap = GENERATE(as<bool>{}, true, false);
         {
             auto idx_expected = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
             auto idx = idx_expected.value();
@@ -304,7 +305,6 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
 #ifdef KNOWHERE_WITH_CARDINAL
     // currently, only cardinal support iterator_retain_order
     SECTION("TEST Range Search (iterator-based) with ordered iterator") {
-        SKIP("Skip this test for v2 temporarily, after fix (iterator-based) with ordered iterator");
         using std::make_tuple;
         auto [name, gen] = GENERATE_REF(table<std::string, std::function<knowhere::Json()>>({
             make_tuple(knowhere::IndexEnum::INDEX_HNSW, ordered_rs_hnsw_gen),
