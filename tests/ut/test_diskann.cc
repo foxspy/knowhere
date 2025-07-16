@@ -344,15 +344,14 @@ base_search() {
                 }
             }
 
-            // TODO: cardinal V2 (diskann range search support)
-            // // range search process
-            // auto range_search_json = range_search_gen().dump();
-            // knowhere::Json range_json = knowhere::Json::parse(range_search_json);
-            // auto range_search_res = diskann.RangeSearch(query_ds, range_json, nullptr);
-            // REQUIRE(range_search_res.has_value());
-            // auto ap = GetRangeSearchRecall(*range_search_gt_ptr, *range_search_res.value());
-            // float standard_ap = metric_range_ap_map[metric_str];
-            // REQUIRE(ap > standard_ap);
+            // range search process
+            auto range_search_json = range_search_gen().dump();
+            knowhere::Json range_json = knowhere::Json::parse(range_search_json);
+            auto range_search_res = diskann.RangeSearch(query_ds, range_json, nullptr);
+            REQUIRE(range_search_res.has_value());
+            auto ap = GetRangeSearchRecall(*range_search_gt_ptr, *range_search_res.value());
+            float standard_ap = metric_range_ap_map[metric_str];
+            REQUIRE(ap > standard_ap);
         }
     }
     fs::remove_all(kDir);

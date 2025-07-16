@@ -190,7 +190,8 @@ TEST_CASE("Test Mem Index With Float Vector", "[float metrics]") {
 
             REQUIRE(idx.Serialize(bs) == knowhere::Status::success);
         }
-        auto load_with_mmap = GENERATE(as<bool>{}, false, true);
+        // search process
+        auto load_with_mmap = GENERATE(as<bool>{}, true, false);
         {
             auto idx_expected = knowhere::IndexFactory::Instance().Create<knowhere::fp32>(name, version);
             auto idx = idx_expected.value();
