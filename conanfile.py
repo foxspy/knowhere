@@ -36,6 +36,7 @@ class KnowhereConan(ConanFile):
         "with_coverage": [True, False],
         "with_faiss_tests": [True, False],
         "with_light": [True, False],
+        "with_compile_prune": [True, False],
     }
     default_options = {
         "shared": True,
@@ -59,6 +60,7 @@ class KnowhereConan(ConanFile):
         "with_faiss_tests": False,
         "libcurl:with_ssl": False,
         "with_light": False,
+        "with_compile_prune": False,
     }
 
     exports_sources = (
@@ -182,6 +184,7 @@ class KnowhereConan(ConanFile):
         tc.variables["WITH_COVERAGE"] = self.options.with_coverage
         tc.variables["WITH_FAISS_TESTS"] = self.options.with_faiss_tests
         tc.variables["WITH_LIGHT"] = self.options.with_light
+        tc.variables["WITH_COMPILE_PRUNE"] = self.options.with_compile_prune
         tc.generate()
 
         deps = CMakeDeps(self)

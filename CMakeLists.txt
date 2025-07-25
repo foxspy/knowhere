@@ -39,6 +39,7 @@ knowhere_option(WITH_CCACHE "Build with ccache" ON)
 knowhere_option(WITH_PROFILER "Build with profiler" OFF)
 knowhere_option(WITH_FAISS_TESTS "Build with Faiss unit tests" OFF)
 knowhere_option(WITH_LIGHT "Build with light weight version" OFF)
+knowhere_option(WITH_COMPILE_PRUNE "Enable compile prune" OFF)
 
 # cardinal is an enterprise vector search engine and can only be enabled for
 # cloud environment
