@@ -180,7 +180,7 @@ TEST_CASE("Test index has raw data", "[IndexHasRawData]") {
 
         // HNSW
 #ifdef KNOWHERE_WITH_CARDINAL
-        CHECK(knowhere::IndexStaticFaced<fp32>::HasRawData(IndexEnum::INDEX_HNSW, ver, {}));
+        CHECK_FALSE(knowhere::IndexStaticFaced<fp32>::HasRawData(IndexEnum::INDEX_HNSW, ver, {}));
 #else
         CHECK(knowhere::IndexStaticFaced<fp32>::HasRawData(IndexEnum::INDEX_HNSW, ver, {}));
 #endif

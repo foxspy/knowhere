@@ -302,6 +302,7 @@ base_search() {
             auto res = diskann.Search(query_ds, knn_json, nullptr);
             REQUIRE(res.has_value());
             auto knn_recall = GetKNNRecall(*knn_gt_ptr, *res.value());
+            CAPTURE(knn_json.dump());
             REQUIRE(knn_recall > kKnnRecall);
 
             // knn search without cache file
