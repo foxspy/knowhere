@@ -4,13 +4,9 @@
 #include <queue>
 #include <libaio.h>
 #include <condition_variable>
-#include "utils.h"
-#include "concurrent_queue.h"
-#include "aux_utils.h"
-#include "diskann/ann_exception.h"
 
 constexpr size_t default_max_nr = 65536;
-constexpr size_t default_max_events = diskann::MAX_N_SECTOR_READS / 2;
+constexpr size_t default_max_events = 128;
 constexpr size_t default_pool_size = default_max_nr / default_max_events;
 
 class AioContextPool {

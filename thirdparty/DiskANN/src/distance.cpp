@@ -1,4 +1,5 @@
 #include <cmath>
+#include "simd/hook.h"
 #include "diskann/distance.h"
 namespace diskann {
   // Get the right distance function for the given metric.

@@ -111,6 +111,9 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET
     "10.15"
     CACHE STRING "Minimum OS X deployment version" FORCE)
 
+set(KNOWHERE_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(KNOWHERE_THRID_ROOT ${KNOWHERE_ROOT}/thirdparty)
+
 include(cmake/libs/libmilvus-common.cmake)
 
 if(OPENMP_FOUND)
@@ -163,11 +166,6 @@ else()
   list(REMOVE_ITEM KNOWHERE_SRCS ${KNOWHERE_DISKANN_SRCS})
 endif()
 
-if(WITH_CARDINAL)
-  add_definitions(-DKNOWHERE_WITH_CARDINAL)
-  include(cmake/libs/libcardinal.cmake)
-endif()
-
 knowhere_file_glob(GLOB_RECURSE KNOWHERE_GPU_SRCS src/index/gpu/flat_gpu/*.cc
                    src/index/gpu/ivf_gpu/*.cc)
 list(REMOVE_ITEM KNOWHERE_SRCS ${KNOWHERE_GPU_SRCS})
@@ -217,6 +215,14 @@ if(WITH_CUVS)
     CUDA::cusparse
     CUDA::cusolver)
 endif()
+
+if(WITH_CARDINAL)
+  add_definitions(-DKNOWHERE_WITH_CARDINAL)
+  add_subdirectory(cmake/libs/cardinal/v2)
+  target_link_libraries(knowhere PUBLIC 
+    -Wl,--whole-archive cardinal -Wl,--no-whole-archive)
+endif()
+
 target_link_libraries(knowhere PUBLIC ${KNOWHERE_LINKER_LIBS})
 target_include_directories(knowhere PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_include_directories(knowhere PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/faiss)

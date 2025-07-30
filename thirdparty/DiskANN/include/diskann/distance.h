@@ -1,8 +1,5 @@
 #pragma once
-#include <cstdint>
-#include "simd/hook.h"
 #include "diskann/utils.h"
-#include "knowhere/operands.h"
 namespace diskann {
 
   template<typename T>
