@@ -4,7 +4,7 @@
 #pragma once
 
 #include "aligned_file_reader.h"
-#include "aio_context_pool.h"
+#include "knowhere/aio_context_pool.h"
 
 class LinuxAlignedFileReader : public AlignedFileReader {
  private:

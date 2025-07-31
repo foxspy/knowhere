@@ -61,6 +61,7 @@ class KnowhereConan(ConanFile):
         "libcurl:with_ssl": False,
         "with_light": False,
         "with_compile_prune": False,
+        "folly:shared": True,
     }
 
     exports_sources = (

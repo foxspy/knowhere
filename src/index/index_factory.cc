@@ -73,6 +73,7 @@ template <typename DataType>
 const IndexFactory&
 IndexFactory::Register(const std::string& name, std::function<Index<IndexNode>(const int32_t&, const Object&)> func,
                        const uint64_t features) {
+    LOG_KNOWHERE_INFO_ << "Register index " << name << " with features " << features;
     static_assert(KnowhereDataTypeCheck<DataType>::value == true);
     auto& func_mapping_ = MapInstance();
     auto key = GetKey<DataType>(name);

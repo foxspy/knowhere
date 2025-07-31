@@ -199,6 +199,21 @@ if(NOT WITH_LIGHT)
        opentelemetry-cpp::opentelemetry_exporter_otlp_http)
 endif()
 
+if(WITH_CARDINAL)
+  add_definitions(-DKNOWHERE_WITH_CARDINAL)
+  add_subdirectory(cmake/libs/cardinal/v2)
+  set(CARDINAL_ROOT  "${KNOWHERE_THRID_ROOT}/cardinal")
+
+  include_directories("${KNOWHERE_THRID_ROOT}/cardinal/include")
+
+  list(APPEND KNOWHERE_SRCS
+    ${CARDINAL_ROOT}/know/cardinal.cc
+    ${CARDINAL_ROOT}/know/cardinal_cluster.cc
+    ${CARDINAL_ROOT}/know/cardinal_index_table.cc
+  )
+  list(APPEND KNOWHERE_LINKER_LIBS cardinal)
+endif()
+
 add_library(knowhere SHARED ${KNOWHERE_SRCS})
 add_dependencies(knowhere ${KNOWHERE_LINKER_LIBS})
 if(WITH_CUVS)
@@ -214,13 +229,6 @@ if(WITH_CUVS)
     CUDA::cublas
     CUDA::cusparse
     CUDA::cusolver)
-endif()
-
-if(WITH_CARDINAL)
-  add_definitions(-DKNOWHERE_WITH_CARDINAL)
-  add_subdirectory(cmake/libs/cardinal/v2)
-  target_link_libraries(knowhere PUBLIC 
-    -Wl,--whole-archive cardinal -Wl,--no-whole-archive)
 endif()
 
 target_link_libraries(knowhere PUBLIC ${KNOWHERE_LINKER_LIBS})

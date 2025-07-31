@@ -1,6 +1,6 @@
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES "")
-set( MILVUS-COMMON-VERSION add_file_manager )
+set( MILVUS-COMMON-VERSION submit_v2 )
 set( GIT_REPOSITORY  "https://github.com/foxspy/milvus-common.git")
 
 message(STATUS "milvus-common repo: ${GIT_REPOSITORY}")

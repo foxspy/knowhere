@@ -14,7 +14,7 @@
 #include <string>
 
 #ifdef KNOWHERE_WITH_DISKANN
-#include "diskann/aio_context_pool.h"
+#include "knowhere/aio_context_pool.h"
 #endif
 #include "faiss/Clustering.h"
 #include "faiss/utils/distances.h"
