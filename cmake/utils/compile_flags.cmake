@@ -9,9 +9,12 @@ if(NOT COMPILER_SUPPORTS_CXX17)
   )
 endif()
 
+
+if(__X86_64)
 set(CMAKE_CXX_FLAGS
       "-fno-stack-protector -fno-omit-frame-pointer -fno-var-tracking -fsanitize=address ${CMAKE_CXX_FLAGS}"
 )
+endif()
 
 set(CMAKE_CXX_FLAGS "-Wall -fPIC ${CMAKE_CXX_FLAGS}")
 #set(CMAKE_CXX_FLAGS "-Wall -Werror -fPIC ${CMAKE_CXX_FLAGS}")
