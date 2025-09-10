@@ -9,11 +9,9 @@ if(NOT COMPILER_SUPPORTS_CXX17)
   )
 endif()
 
-if(WITH_ASAN)
-  set(CMAKE_CXX_FLAGS
+set(CMAKE_CXX_FLAGS
       "-fno-stack-protector -fno-omit-frame-pointer -fno-var-tracking -fsanitize=address ${CMAKE_CXX_FLAGS}"
-  )
-endif()
+)
 
 set(CMAKE_CXX_FLAGS "-Wall -fPIC ${CMAKE_CXX_FLAGS}")
 #set(CMAKE_CXX_FLAGS "-Wall -Werror -fPIC ${CMAKE_CXX_FLAGS}")
@@ -23,7 +21,7 @@ if(__X86_64)
 endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g")
-set(CMAKE_CXX_FLAGS_RELEASE "-Og -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -g -DNDEBUG")
 
 if(WITH_CUVS)
   set(CMAKE_CUDA_FLAGS_DEBUG "-O0 -g -Xcompiler=-w ")
