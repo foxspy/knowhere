@@ -415,7 +415,7 @@ GenerateRandomDistanceIdPair(size_t n) {
 
 inline auto
 GenTestVersionList() {
-    return GENERATE(as<int32_t>{}, knowhere::Version::GetCurrentVersion().VersionNumber());
+    return GENERATE(as<int32_t>{}, knowhere::Version::GetCurrentVersion().VersionNumber() + 1);
 }
 
 inline knowhere::DataSetPtr
