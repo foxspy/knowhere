@@ -115,7 +115,9 @@ GetKNNRecall(const knowhere::DataSet& ground_truth, const knowhere::DataSet& res
     auto gt_k = ground_truth.GetDim();
     auto res_k = result.GetDim();
     auto gt_ids = ground_truth.GetIds();
+    auto gt_dists = ground_truth.GetDistance();
     auto res_ids = result.GetIds();
+    auto res_dists = result.GetDistance();
 
     uint32_t matched_num = 0;
     for (auto i = 0; i < nq; ++i) {
@@ -129,6 +131,18 @@ GetKNNRecall(const knowhere::DataSet& ground_truth, const knowhere::DataSet& res
         it = std::set_intersection(ids_0.begin(), ids_0.end(), ids_1.begin(), ids_1.end(), v.begin());
         v.resize(it - v.begin());
         matched_num += v.size();
+        size_t valid_cnt = v.size();
+
+        if (v.size() < res_k * 0.5) {
+            LOG_KNOWHERE_INFO_ << "id = " << i << ", valid_cnt < res_k * 0.5, valid_cnt: " << valid_cnt << ", res_k: " << res_k;
+
+            for (int j = 0; j < res_k; ++j) {
+               LOG_KNOWHERE_INFO_ << "gt {id: " << gt_ids[i * gt_k + j] << ", dist: " << gt_dists[i * gt_k + j] << "}, res {id: " << res_ids[i * res_k + j] << ", dist: " << res_dists[i * res_k + j] << "}";
+            }
+            LOG_KNOWHERE_INFO_ << "--------------------------------";
+        } else {
+            LOG_KNOWHERE_INFO_ << "id = " << i << ", valid_cnt >= res_k * 0.5, valid_cnt: " << valid_cnt << ", res_k: " << res_k;
+        }
     }
     return ((float)matched_num) / ((float)nq * res_k);
 }
@@ -420,15 +434,6 @@ GenerateRandomDistanceIdPair(size_t n) {
 inline auto
 GenTestVersionList() {
     return GENERATE(as<int32_t>{}, knowhere::Version::GetCurrentVersion().VersionNumber());
-}
-
-inline auto
-GenTestEmbListVersionList() {
-#ifdef KNOWHERE_WITH_CARDINAL
-    return GENERATE(as<int32_t>{}, std::max(knowhere::Version::GetCurrentVersion().VersionNumber(), 9));
-#else
-    return GENERATE(as<int32_t>{}, knowhere::Version::GetCurrentVersion().VersionNumber());
-#endif
 }
 
 inline knowhere::DataSetPtr

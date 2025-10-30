@@ -379,7 +379,7 @@ TEST_CASE("Test DiskANNIndexNode.", "[diskann]") {
 template <typename DataType>
 inline void
 emb_list_search() {
-    auto version = GenTestEmbListVersionList();
+    auto version = GenTestVersionList();
 
     fs::remove_all(kDir);
     fs::remove(kDir);

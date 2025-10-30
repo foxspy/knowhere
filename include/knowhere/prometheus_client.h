@@ -77,8 +77,11 @@ extern const std::unique_ptr<PrometheusClient> prometheusClient;
     prometheus::Family<prometheus::Histogram>& CONCATENATE(name, family) = \
         prometheus::BuildHistogram().Name(#name).Help(desc).Register(knowhere::prometheusClient->GetRegistry());
 
+#define STRINGIFY(x) #x
+#define STRINGIFY_EXPANDED(x) STRINGIFY(x)
+
 #define DEFINE_PROMETHEUS_HISTOGRAM_WITH_BUCKETS(name, module, buckets) \
-    prometheus::Histogram& CONCATENATE(module, name) = CONCATENATE(name, family).Add({{"module", #module}}, buckets);
+    prometheus::Histogram& CONCATENATE(module, name) = CONCATENATE(name, family).Add({{"module", STRINGIFY_EXPANDED(module)}}, buckets);
 
 #define DEFINE_PROMETHEUS_HISTOGRAM(name, module) DEFINE_PROMETHEUS_HISTOGRAM_WITH_BUCKETS(name, module, defaultBuckets)
 

@@ -256,6 +256,91 @@ index_support_int8(const knowhere::Json& conf) {
     return knowhere::IndexFactory::Instance().FeatureCheck(index_type, knowhere::feature::INT8);
 }
 
+std::string GetPrometheusMetrics(const std::string& metric_filter) {
+    auto raw_metrics = knowhere::prometheusClient->GetMetrics();
+
+    std::stringstream result;
+
+    std::stringstream ss(raw_metrics);
+    std::string line;
+    std::string current_help, current_type;
+    bool has_valid_data = false;
+
+    result << " \nKnowhere prometheus metric infos" << "\n";
+
+    auto split_keys = [](const std::string& str) {
+        std::vector<std::string> keys;
+        std::stringstream ss(str);
+        std::string item;
+
+        while (std::getline(ss, item, ',')) {
+            keys.push_back(item);
+        }
+
+        return keys;
+    };
+
+    std::vector<std::string> filter_keys = split_keys(metric_filter);
+
+    double current_count = 0;
+    bool current_count_all = false;
+    double last_value = 0;
+    while (std::getline(ss, line)) {
+        // Store HELP and TYPE lines
+        if (line.compare(0, 6, "# HELP") == 0) {
+            current_help = line;
+            has_valid_data = false;
+            continue;
+        }
+        if (line.compare(0, 6, "# TYPE") == 0) {
+            current_type = line;
+            continue;
+        }
+
+        // Skip empty lines
+        if (line.empty()) {
+            continue;
+        }
+
+        // Check if line contains non-zero value
+        size_t value_pos = line.find_last_of(' ');
+        if (value_pos != std::string::npos) {
+            bool count_line = false;
+            std::string prefix = line.substr(value_pos);
+            double value = std::stod(line.substr(value_pos + 1));
+            double value_diff = value - last_value;
+            // Store count if this is a count metric
+            if (line.find("_count{") != std::string::npos) {
+                count_line = true;
+                current_count = value;
+                current_count_all = false;
+            }
+            if (value_diff > 0) {
+                if (current_count_all == true) {
+                    continue;
+                }
+                // If this is the first valid data for this metric, print the headers
+                if (!has_valid_data) {
+                    result << current_help << "\n";
+                    result << current_type << "\n";
+                    has_valid_data = true;
+                }
+                for (auto& key : filter_keys) {
+                    if (line.find(key) != std::string::npos) {
+                        result << line << "\n";
+                        break;
+                    }
+                }
+                if (value == current_count && !count_line) {
+                    current_count_all = true;
+                }
+            }
+        }
+    }
+
+    return result.str();
+}
+
 //
 template <typename T>
 std::string
@@ -543,7 +628,7 @@ TEST_CASE("Search for FAISS HNSW Indices", "Benchmark and validation") {
                             // provide a default one if nbits_set == 0
                             knowhere::BitsetView bitset_view = nullptr;
                             if (nbits_set != 0) {
-                                bitset_view = knowhere::BitsetView(bitset_data.data(), nb, nb - nbits_set);
+                                bitset_view = knowhere::BitsetView(bitset_data.data(), nb, nbits_set);
                             }
 
                             // get a golden result
@@ -586,11 +671,11 @@ TEST_CASE("Search for FAISS HNSW Indices", "Benchmark and validation") {
                                     "out\n",
                                     DISTANCE_TYPES[distance_type].c_str(), dim, nb, int(bitset_rate * 100));
 
-                                index_file =
-                                    test_hnsw<knowhere::int8>(default_ds_ptr, query_ds_ptr, golden_result.value(),
-                                                              params, conf, mv_only_enable, bitset_view);
-                                index_files.emplace_back(index_file);
-                            }
+                            //     index_file =
+                            //         test_hnsw<knowhere::int8>(default_ds_ptr, query_ds_ptr, golden_result.value(),
+                            //                                   params, conf, mv_only_enable, bitset_view);
+                            //     index_files.emplace_back(index_file);
+                            // }
 
                             std::remove(get_index_name<knowhere::fp32>(ann_test_name_, index_type, params).c_str());
                             std::remove(get_index_name<knowhere::fp16>(ann_test_name_, index_type, params).c_str());

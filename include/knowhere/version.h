@@ -16,13 +16,31 @@
 
 #include "comp/index_param.h"
 #include "log.h"
-
 namespace knowhere {
 namespace {
-static constexpr int32_t default_version = 0;
-static constexpr int32_t minimal_version = 0;
-static constexpr int32_t current_version = 8;
-static constexpr int32_t maximum_version = 9;
+
+#ifdef KNOWHERE_WITH_CARDINAL
+static constexpr int32_t cardinal_default_version = 0;
+static constexpr int32_t cardinal_minimal_version = 0;
+static constexpr int32_t cardinal_current_version = 9;
+static constexpr int32_t cardinal_maximum_version = 9;
+
+static constexpr int32_t default_version = cardinal_default_version;
+static constexpr int32_t minimal_version = cardinal_minimal_version;
+static constexpr int32_t current_version = cardinal_current_version;
+static constexpr int32_t maximum_version = cardinal_maximum_version;
+#else
+static constexpr int32_t knowhere_default_version = 0;
+static constexpr int32_t knowhere_minimal_version = 0;
+static constexpr int32_t knowhere_current_version = 8;
+static constexpr int32_t knowhere_maximum_version = 9;
+
+static constexpr int32_t default_version = knowhere_default_version;
+static constexpr int32_t minimal_version = knowhere_minimal_version;
+static constexpr int32_t current_version = knowhere_current_version;
+static constexpr int32_t maximum_version = knowhere_maximum_version;
+#endif
+
 }  // namespace
 
 class Version {
