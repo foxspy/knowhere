@@ -157,6 +157,25 @@ class IndexNode : public Object {
                                          "BruteForceByIDs not supported for current index type");
     };
 
+
+    virtual expected<std::vector<int64_t>>
+    GetNeigborsByBucketId(int64_t bucket_id) const {
+        return expected<std::vector<int64_t>>::Err(Status::not_implemented, "GetNeigborsByBucketId is not implemented");
+    }
+
+    virtual expected<DataSetPtr>
+    GetBucketCentroids() const {
+        return expected<DataSetPtr>::Err(Status::not_implemented, "Get Bucket Centroids is not implemented");
+    }
+
+    virtual expected<std::vector<int64_t>>
+    GetNeighborsById(int64_t id) const {
+        return expected<std::vector<int64_t>>::Err(Status::not_implemented, "GetNeigborsByBucketIds is not implemented");
+    }
+
+    virtual int64_t GetEntryId() {
+        return 0;
+    }
     // not thread safe.
     class iterator {
      public:
