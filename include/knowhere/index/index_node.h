@@ -164,6 +164,12 @@ class IndexNode : public Object {
         Next() = 0;
         [[nodiscard]] virtual bool
         HasNext() = 0;
+        virtual void PullNext() {
+            throw std::runtime_error("PullNext not supported for current index type");
+        }
+        [[nodiscard]] virtual float NextTop() const {
+            throw std::runtime_error("NextTop not supported for current index type");
+        }
         virtual ~iterator() {
         }
     };
@@ -1044,22 +1050,20 @@ class IndexIterator : public IndexNode::iterator {
         auto ret = q.top();
         q.pop();
 
+        return std::make_pair(ret.id, ret.val * sign_);
+    }
+
+    [[nodiscard]] bool
+    HasNext() override {
+        if (!initialized_) {
+            initialize();
+        }
+        return !res_.empty() || !refined_res_.empty();
+    }
+
+    void PullNext() override {
         auto update_next_func = [&]() {
             UpdateNext();
-            if (retain_iterator_order_) {
-                while (HasNext()) {
-                    auto& q = !refine_ ? res_ : refined_res_;
-                    auto next_ret = q.top();
-                    // with the help of `sign_`, both `res_` and `refine_res` are min-heap.
-                    //   such as `COSINE`, `-dist` will be inserted to `res_` or `refine_res`.
-                    // just make sure that the next value is greater than or equal to the current value.
-                    if (next_ret.val >= ret.val) {
-                        break;
-                    }
-                    q.pop();
-                    UpdateNext();
-                }
-            }
         };
         if (use_knowhere_search_pool_) {
 #if defined(NOT_COMPILE_FOR_SWIG) && !defined(KNOWHERE_WITH_LIGHT)
@@ -1075,16 +1079,11 @@ class IndexIterator : public IndexNode::iterator {
         } else {
             update_next_func();
         }
+    }   
 
-        return std::make_pair(ret.id, ret.val * sign_);
-    }
-
-    [[nodiscard]] bool
-    HasNext() override {
-        if (!initialized_) {
-            initialize();
-        }
-        return !res_.empty() || !refined_res_.empty();
+    [[nodiscard]] float
+    NextTop() const override {
+        return -1.0f;
     }
 
     virtual void

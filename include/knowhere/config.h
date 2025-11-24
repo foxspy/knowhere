@@ -611,6 +611,7 @@ class BaseConfig : public Config {
     CFG_MATERIALIZED_VIEW_SEARCH_INFO_TYPE materialized_view_search_info;
     CFG_STRING opt_fields_path;
     CFG_FLOAT iterator_refine_ratio;
+    CFG_INT init_threshold;
     /**
      * k1, b, avgdl are used by BM25 metric only.
      * - k1, b, avgdl must be provided at load time.
@@ -665,6 +666,10 @@ class BaseConfig : public Config {
             .description("raw data path.")
             .allow_empty_without_default()
             .for_train();
+        KNOWHERE_CONFIG_DECLARE_FIELD(init_threshold)
+            .description("init threshold for iterator")
+            .set_default(0)
+            .for_iterator();
         KNOWHERE_CONFIG_DECLARE_FIELD(index_prefix)
             .description("path prefix to load or save index.")
             .allow_empty_without_default()
