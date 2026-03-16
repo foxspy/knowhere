@@ -600,6 +600,7 @@ class BaseConfig : public Config {
     CFG_INT range_search_k;
     CFG_FLOAT range_filter;
     CFG_FLOAT range_search_level;
+    CFG_BOOL iter_based_range_search;
     CFG_BOOL retain_iterator_order;
     CFG_BOOL trace_visit;
     CFG_BOOL enable_mmap;
@@ -689,6 +690,10 @@ class BaseConfig : public Config {
             .set_default(0.01f)
             .description("control the accurancy of range search, [0.0 - 0.5], the larger the more accurate")
             .set_range(0, 0.5)
+            .for_range_search();
+        KNOWHERE_CONFIG_DECLARE_FIELD(iter_based_range_search)
+            .set_default(false)
+            .description("use iterator-based range search instead of search-based")
             .for_range_search();
         KNOWHERE_CONFIG_DECLARE_FIELD(trace_visit)
             .set_default(false)
