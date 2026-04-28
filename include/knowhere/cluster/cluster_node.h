@@ -38,6 +38,14 @@ class ClusterNode : public Object {
     virtual expected<DataSetPtr>
     GetCentroids() const = 0;
 
+    // Inject externally-computed centroids, bypassing Train. After success,
+    // Assign and GetCentroids behave as they do after Train.
+    virtual Status
+    SetCentroids(const DataSet& centroids) {
+        (void)centroids;
+        return Status::not_implemented;
+    }
+
     virtual std::unique_ptr<Config>
     CreateConfig() const = 0;
 

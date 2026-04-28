@@ -60,6 +60,12 @@ Cluster<T>::GetCentroids() const noexcept {
 }
 
 template <typename T>
+inline Status
+Cluster<T>::SetCentroids(const DataSet& centroids) {
+    return this->node->SetCentroids(centroids);
+}
+
+template <typename T>
 inline std::string
 Cluster<T>::Type() const noexcept {
     return GuardedCall([&]() { return this->node->Type(); });
