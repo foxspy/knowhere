@@ -125,6 +125,9 @@ class Cluster {
     expected<DataSetPtr>
     GetCentroids() const;
 
+    Status
+    SetCentroids(const DataSet& centroids);
+
     std::string
     Type() const;
 

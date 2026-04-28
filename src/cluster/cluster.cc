@@ -58,6 +58,12 @@ Cluster<T>::GetCentroids() const {
 }
 
 template <typename T>
+inline Status
+Cluster<T>::SetCentroids(const DataSet& centroids) {
+    return this->node->SetCentroids(centroids);
+}
+
+template <typename T>
 inline std::string
 Cluster<T>::Type() const {
     return this->node->Type();
