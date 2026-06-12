@@ -433,7 +433,15 @@ class DataSet : public std::enable_shared_from_this<const DataSet> {
         std::shared_lock lock(mutex_);
         auto it = this->data_.find(k);
         if (it != this->data_.end()) {
-            return *std::any_cast<T>(std::get_if<std::any>(&it->second));
+            auto any_ptr = std::get_if<std::any>(&it->second);
+            if (any_ptr == nullptr) {
+                return T();
+            }
+            auto value_ptr = std::any_cast<T>(any_ptr);
+            if (value_ptr == nullptr) {
+                throw std::bad_any_cast();
+            }
+            return *value_ptr;
         }
         return T();
     }
