@@ -187,8 +187,7 @@ endif()
 
 if(WITH_CARDINAL)
   add_definitions(-DKNOWHERE_WITH_CARDINAL)
-  add_subdirectory(cmake/libs/cardinal/v1)
-  list(APPEND CARDINAL_LIBS cardinalv1)
+  # CardinalV1 is not required by vecTool global index_version=10.
   add_subdirectory(cmake/libs/cardinal/v2)
   list(APPEND CARDINAL_LIBS cardinalv2)
   knowhere_file_glob(GLOB_RECURSE KNOWHERE_SPARSE_NODE_SRCS src/index/sparse/sparse_index_node.cc)

@@ -332,6 +332,6 @@ FaissKmeansClusterNode<DataType>::Type() const {
     return knowhere::ClusterEnum::CLUSTER_KMEANS;
 }
 
-KNOWHERE_CLUSTER_SIMPLE_REGISTER_GLOBAL(KMEANS, FaissKmeansClusterNode, fp32);
+// Disabled by vecTool Cardinal build: CardinalV2 registers KMEANS.
 
 }  // namespace knowhere
