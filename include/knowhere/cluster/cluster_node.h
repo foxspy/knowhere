@@ -28,10 +28,25 @@ class ClusterNode : public Object {
     virtual expected<DataSetPtr>
     Train(const DataSet& dataset, const Config& cfg) = 0;
 
-    // cluster assign, return id_mapping
-    // (rows, uint32_t* id_mapping)
+    // cluster assign, return id_mapping and optional distance.
+    // Legacy callers may read id_mapping from tensor; callers that need
+    // distance should read ids and distance.
     virtual expected<DataSetPtr>
     Assign(const DataSet& dataset) = 0;
+
+    virtual expected<DataSetPtr>
+    Assign(const DataSet& dataset, const Config& cfg) {
+        (void)cfg;
+        return Assign(dataset);
+    }
+
+    // build a compaction plan from assignment result.
+    virtual expected<DataSetPtr>
+    BuildCompactionPlan(const DataSet& assignment, const Config& cfg) {
+        (void)assignment;
+        (void)cfg;
+        return expected<DataSetPtr>::Err(Status::not_implemented, "BuildCompactionPlan is not implemented");
+    }
 
     // return centroids, must be called after trained
     // (rows, dim, centroid_vector_list)
