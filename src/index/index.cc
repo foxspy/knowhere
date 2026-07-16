@@ -228,12 +228,23 @@ inline expected<DataSetPtr>
 Index<T>::Search(const DataSetPtr dataset, const Json& json, const BitsetView& bitset_,
                  milvus::OpContext* op_context) const noexcept {
     return GuardedCall([&]() -> expected<DataSetPtr> {
-        auto cfg = this->node->CreateConfig();
+        std::unique_ptr<BaseConfig> owned_cfg;
+        std::shared_ptr<const Config> prepared_cfg;
         std::string msg;
-        const Status load_status = LoadConfig(cfg.get(), json, knowhere::SEARCH, "Search", &msg);
-        if (load_status != Status::success) {
-            return expected<DataSetPtr>::Err(load_status, msg);
+        if (this->node->SupportsSearchConfigCache()) {
+            auto result = this->node->GetOrCreateSearchConfig(json);
+            if (!result.has_value()) {
+                return expected<DataSetPtr>::Err(result.error(), result.what());
+            }
+            prepared_cfg = std::move(result.value());
+        } else {
+            owned_cfg = this->node->CreateConfig();
+            const Status load_status = LoadConfig(owned_cfg.get(), json, knowhere::SEARCH, "Search", &msg);
+            if (load_status != Status::success) {
+                return expected<DataSetPtr>::Err(load_status, msg);
+            }
         }
+        const Config* cfg = prepared_cfg != nullptr ? prepared_cfg.get() : owned_cfg.get();
         auto bitset_or = this->node->PrepareBitset(bitset_);
         if (!bitset_or.has_value()) {
             return expected<DataSetPtr>::Err(bitset_or.error(), bitset_or.what());
@@ -257,14 +268,22 @@ Index<T>::Search(const DataSetPtr dataset, const Json& json, const BitsetView& b
         // LCOV_EXCL_STOP
 
         TimeRecorder rc("Search");
-        auto k = cfg->k.value();
-        auto res = this->node->SearchEmbListIfNeed(dataset, std::move(cfg), prepared_bitset.bitset, op_context);
+        auto k = b_cfg.k.value();
+        auto res = prepared_cfg != nullptr
+                       ? this->node->SearchWithPreparedConfig(dataset, std::move(prepared_cfg), prepared_bitset.bitset,
+                                                             op_context)
+                       : this->node->SearchEmbListIfNeed(dataset, std::move(owned_cfg), prepared_bitset.bitset,
+                                                         op_context);
         auto time = rc.ElapseFromBegin("done");
         time *= 0.001;  // convert to ms
         this->node->GetSearchLatencyMetric().Observe(time);
         knowhere_search_topk.Observe(k);
 #else
-        auto res = this->node->SearchEmbListIfNeed(dataset, std::move(cfg), prepared_bitset.bitset, op_context);
+        auto res = prepared_cfg != nullptr
+                       ? this->node->SearchWithPreparedConfig(dataset, std::move(prepared_cfg), prepared_bitset.bitset,
+                                                             op_context)
+                       : this->node->SearchEmbListIfNeed(dataset, std::move(owned_cfg), prepared_bitset.bitset,
+                                                         op_context);
 #endif
         return res;
     });
