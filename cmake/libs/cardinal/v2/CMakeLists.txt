@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.26.4 FATAL_ERROR)
 project(knowhere CXX C)
 
 # Use short SHA1 as version
-# currenly checkout a commit for cardinal v2. TODO: need a tag here
-set(CARDINAL_VERSION v3.0.2)
-set(CARDINAL_REPO_URL "https://github.com/zilliztech/cardinal.git")
+# Global index branch is hosted in zilliztech/cardinal until it is upstreamed.
+set(CARDINAL_VERSION global_index_submit)
+set(CARDINAL_REPO_URL git@github.com:foxspy/cardinal.git)
 
 set(CARDINAL_ROOT  "${KNOWHERE_THRID_ROOT}/cardinalv2")
 message(STATUS "Build Cardinal-${CARDINAL_VERSION}")
