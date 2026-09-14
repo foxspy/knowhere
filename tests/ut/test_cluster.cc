@@ -11,6 +11,7 @@
 
 #include <sys/stat.h>
 
+#include <cmath>
 #include <unordered_set>
 
 #include "catch2/catch_approx.hpp"
@@ -107,6 +108,10 @@ TEST_CASE("Test Kmeans With Float Vector", "[float metrics]") {
         faiss::IndexFlatL2 index(dim);
         res_assign = cluster.Assign(*query_ds);
         REQUIRE(res_assign.has_value());
+        auto res_assign_with_distance = cluster.AssignWithDistance(*query_ds, json);
+        REQUIRE(res_assign_with_distance.has_value());
+        REQUIRE(res_assign_with_distance.value()->GetIds() != nullptr);
+        REQUIRE(res_assign_with_distance.value()->GetDistance() != nullptr);
 
         // each query select its nearest cluster as the result
         // like ivfflat choose nprobe=1
@@ -133,6 +138,8 @@ TEST_CASE("Test Kmeans With Float Vector", "[float metrics]") {
             std::vector<float> dis(nprobes);
             std::vector<faiss::idx_t> idx(nprobes);
             index.search(1, &queries[i * dim], nprobes, dis.data(), idx.data());
+            CHECK(res_assign_with_distance.value()->GetIds()[i] == idx[0]);
+            CHECK(res_assign_with_distance.value()->GetDistance()[i] == Approx(dis[0]));
             for (int64_t j = 0; j < nprobes; j++) {
                 auto centroid_id = idx[j];
                 result[i].insert(result[i].end(), ids[centroid_id].begin(), ids[centroid_id].end());
@@ -141,5 +148,57 @@ TEST_CASE("Test Kmeans With Float Vector", "[float metrics]") {
         float recall = GetKNNRecall(*gt.value(), result, nprobes);
         LOG_KNOWHERE_INFO_ << "recall: " << recall;
         REQUIRE(recall > kKnnRecallThreshold);
+    }
+}
+template <typename DataType>
+void
+CheckLowPrecisionKmeans() {
+    constexpr int64_t rows = 100;
+    constexpr int64_t dim = 4;
+    std::vector<DataType> vectors(rows * dim);
+    for (int64_t row = 0; row < rows; ++row) {
+        const auto center = row < rows / 2 ? -10.0f : 10.0f;
+        for (int64_t d = 0; d < dim; ++d) {
+            vectors[row * dim + d] = DataType(center + float(row % 5) * 0.1f);
+        }
+    }
+
+    auto dataset = knowhere::GenDataSet(rows, dim, vectors.data());
+    auto cluster = knowhere::ClusterFactory::Instance().Create<DataType>(knowhere::ClusterEnum::CLUSTER_KMEANS).value();
+    const knowhere::Json config = {{"num_clusters", 2},
+                                   {"num_iter", 5},
+                                   {knowhere::meta::METRIC_TYPE, knowhere::metric::L2},
+                                   {knowhere::meta::NUM_BUILD_THREAD, 1}};
+
+    auto train = cluster.Train(*dataset, config);
+    REQUIRE(train.has_value());
+
+    auto centroids = cluster.GetCentroids();
+    REQUIRE(centroids.has_value());
+    REQUIRE(centroids.value()->GetRows() == 2);
+    REQUIRE(centroids.value()->GetDim() == dim);
+    const auto* centroid_data = static_cast<const DataType*>(centroids.value()->GetTensor());
+    for (int64_t i = 0; i < 2 * dim; ++i) {
+        CHECK(std::isfinite(static_cast<float>(centroid_data[i])));
+    }
+
+    auto assignment = cluster.AssignWithDistance(*dataset, config);
+    REQUIRE(assignment.has_value());
+    REQUIRE(assignment.value()->GetIds() != nullptr);
+    REQUIRE(assignment.value()->GetDistance() != nullptr);
+    for (int64_t row = 0; row < rows; ++row) {
+        CHECK(assignment.value()->GetIds()[row] >= 0);
+        CHECK(assignment.value()->GetIds()[row] < 2);
+        CHECK(std::isfinite(assignment.value()->GetDistance()[row]));
+        CHECK(assignment.value()->GetDistance()[row] >= 0.0f);
+    }
+}
+
+TEST_CASE("Kmeans preserves low precision centroid types", "[cluster low precision]") {
+    SECTION("fp16") {
+        CheckLowPrecisionKmeans<knowhere::fp16>();
+    }
+    SECTION("bf16") {
+        CheckLowPrecisionKmeans<knowhere::bf16>();
     }
 }

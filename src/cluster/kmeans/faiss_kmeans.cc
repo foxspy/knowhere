@@ -3,6 +3,7 @@
 
 #include <faiss/IndexFlat.h>
 
+#include <algorithm>
 #include "cluster/kmeans/kmeans_config.h"
 #include "common/metric.h"
 #include "faiss/Clustering.h"
@@ -10,6 +11,7 @@
 #include "knowhere/cluster/cluster_node.h"
 #include "knowhere/comp/task.h"
 #include "knowhere/thread_pool.h"
+#include "knowhere/utils.h"
 
 namespace knowhere {
 
@@ -52,7 +54,14 @@ class FaissKmeansClusterNode : public ClusterNode {
     expected<DataSetPtr>
     Assign(const DataSet& dataset) override {
         size_t score;
-        return AssignInternal(dataset, false, score);
+        return AssignInternal(dataset, false, score, false);
+    }
+
+    expected<DataSetPtr>
+    AssignWithDistance(const DataSet& dataset, const Config& cfg) override {
+        (void)cfg;
+        size_t score;
+        return AssignInternal(dataset, false, score, true);
     }
 
     // return centroids, must be called after trained
@@ -81,7 +90,7 @@ class FaissKmeansClusterNode : public ClusterNode {
 
  private:
     expected<DataSetPtr>
-    AssignInternal(const DataSet& dataset, bool balance, size_t& score);
+    AssignInternal(const DataSet& dataset, bool balance, size_t& score, bool include_distance);
     std::shared_ptr<faiss::Clustering> clustering;
     std::unique_ptr<faiss::ProgressiveDimIndexFactory> index_factory;
     std::shared_ptr<ThreadPool> search_pool;
@@ -134,7 +143,11 @@ FaissKmeansClusterNode<DataType>::Train(const DataSet& dataset, const Config& cf
 
         LOG_KNOWHERE_INFO_ << "start cluster training with " << num_rows << " vectors, num clusters: " << num_clusters
                            << " metric type: " << kmeans_conf.metric_type.value();
-        auto train_data = static_cast<const DataType*>(dataset.GetTensor());
+        auto train_dataset = data_type_conversion<DataType, fp32>(dataset);
+        if (train_dataset == nullptr) {
+            return expected<DataSetPtr>::Err(Status::invalid_args, "failed to convert kmeans train data to fp32");
+        }
+        auto train_data = static_cast<const float*>(train_dataset->GetTensor());
         {
             {
                 int num_threads = kmeans_conf.num_build_thread.has_value() ? kmeans_conf.num_build_thread.value() : 0;
@@ -143,7 +156,7 @@ FaissKmeansClusterNode<DataType>::Train(const DataSet& dataset, const Config& cf
                 clustering->train(num_rows, train_data, *the_index);
                 delete the_index;
             }
-            auto res = AssignInternal(dataset, false, current_score);
+            auto res = AssignInternal(dataset, false, current_score, false);
             if (!res.has_value()) {
                 return res;
             }
@@ -182,15 +195,20 @@ FaissKmeansClusterNode<DataType>::Train(const DataSet& dataset, const Config& cf
 
 template <typename DataType>
 expected<DataSetPtr>
-FaissKmeansClusterNode<DataType>::AssignInternal(const DataSet& dataset, bool balance, size_t& score) {
+FaissKmeansClusterNode<DataType>::AssignInternal(const DataSet& dataset, bool balance, size_t& score,
+                                                 bool include_distance) {
     if (!clustering) {
         LOG_KNOWHERE_ERROR_ << "Kmeans not prepared";
         return expected<DataSetPtr>::Err(Status::empty_index, "kmeans not loaded");
     }
     const auto num_rows = dataset.GetRows();
-    const float* queries = static_cast<const float*>(dataset.GetTensor());
+    auto query_dataset = data_type_conversion<DataType, fp32>(dataset);
+    if (query_dataset == nullptr) {
+        return expected<DataSetPtr>::Err(Status::invalid_args, "failed to convert kmeans assignment data to fp32");
+    }
+    const float* queries = static_cast<const float*>(query_dataset->GetTensor());
     size_t probes = balance ? clustering->k : 1;
-    std::vector<DataType> dis(num_rows * probes);
+    std::vector<float> dis(num_rows * probes);
     std::vector<faiss::idx_t> idx(num_rows * probes);
     size_t minimum_row = 3;
     size_t avg_points_per_cluster = (num_rows / clustering->k);
@@ -296,7 +314,24 @@ FaissKmeansClusterNode<DataType>::AssignInternal(const DataSet& dataset, bool ba
     score = max_points - min_points;
     auto ret_ds = std::make_shared<DataSet>();
     ret_ds->SetRows(num_rows);
-    ret_ds->SetTensor(std::move(p_id));
+    if (include_distance) {
+        auto ids = std::make_unique<int64_t[]>(num_rows);
+        auto distances = std::make_unique<float[]>(num_rows);
+        for (int64_t i = 0; i < num_rows; ++i) {
+            ids[i] = p_id[i];
+            distances[i] = static_cast<float>(dis[i * probes]);
+            for (size_t j = 0; j < probes; ++j) {
+                if (idx[i * probes + j] == ids[i]) {
+                    distances[i] = static_cast<float>(dis[i * probes + j]);
+                    break;
+                }
+            }
+        }
+        ret_ds->SetIds(std::move(ids));
+        ret_ds->SetDistance(std::move(distances));
+    } else {
+        ret_ds->SetTensor(std::move(p_id));
+    }
     ret_ds->SetIsOwner(true);
     return ret_ds;
 }
@@ -312,7 +347,8 @@ FaissKmeansClusterNode<DataType>::GetCentroids() const {
     }
     auto ret_ds = std::make_shared<DataSet>();
     auto centroids = std::make_unique<DataType[]>(clustering->k * clustering->d);
-    memcpy(centroids.get(), clustering->centroids.data(), sizeof(DataType) * clustering->k * clustering->d);
+    std::transform(clustering->centroids.begin(), clustering->centroids.end(), centroids.get(),
+                   [](float value) { return DataType(value); });
     ret_ds->SetRows(clustering->k);
     ret_ds->SetDim(clustering->d);
     ret_ds->SetTensor(std::move(centroids));
@@ -333,5 +369,7 @@ FaissKmeansClusterNode<DataType>::Type() const {
 }
 
 KNOWHERE_CLUSTER_SIMPLE_REGISTER_GLOBAL(KMEANS, FaissKmeansClusterNode, fp32);
+KNOWHERE_CLUSTER_SIMPLE_REGISTER_GLOBAL(KMEANS, FaissKmeansClusterNode, fp16);
+KNOWHERE_CLUSTER_SIMPLE_REGISTER_GLOBAL(KMEANS, FaissKmeansClusterNode, bf16);
 
 }  // namespace knowhere
