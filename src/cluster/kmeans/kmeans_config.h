@@ -4,6 +4,8 @@
 #ifndef SRC_CLUSTER_KMEANS_KMEANS_CONFIG_H_
 #define SRC_CLUSTER_KMEANS_KMEANS_CONFIG_H_
 
+#include <limits>
+
 #include "knowhere/config.h"
 
 namespace knowhere {
@@ -12,6 +14,8 @@ class KmeansConfig : public BaseConfig {
  public:
     CFG_INT num_clusters;
     CFG_INT num_iter;
+    CFG_STRING planner;
+    CFG_INT compaction_max_rows;
     KNOWHERE_DECLARE_CONFIG(KmeansConfig) {
         KNOWHERE_CONFIG_DECLARE_FIELD(num_clusters)
             .description("the number of clusters")
@@ -22,6 +26,11 @@ class KmeansConfig : public BaseConfig {
             .description("The number training iterations")
             .set_default(12)
             .set_range(1, 50)
+            .for_cluster();
+        KNOWHERE_CONFIG_DECLARE_FIELD(planner).set_default("ivf").for_cluster();
+        KNOWHERE_CONFIG_DECLARE_FIELD(compaction_max_rows)
+            .set_default(0)
+            .set_range(0, std::numeric_limits<CFG_INT::value_type>::max())
             .for_cluster();
     }
 };

@@ -74,9 +74,20 @@ class ConfigurableClusterNode : public LegacyClusterNode {
         return Assign(dataset, cfg);
     }
 
-    expected<DataSetPtr>
-    BuildCompactionPlan(const DataSet& dataset, const Config& cfg) override {
-        return Assign(dataset, cfg);
+    expected<CompactionResult>
+    BuildCompactionPlan(const std::vector<uint64_t>& counts, const Config& cfg) override {
+        batch_size = static_cast<const ClusterApiConfig&>(cfg).batch_size.value();
+        CompactionResult result;
+        result.centroid_count = counts.size();
+        result.centroid_counts = counts;
+        for (uint32_t centroid = 0; centroid < counts.size(); ++centroid) {
+            result.row_count += counts[centroid];
+            if (counts[centroid] != 0) {
+                result.centroid_groups.push_back(
+                    {static_cast<uint32_t>(result.centroid_groups.size()), counts[centroid], {centroid}});
+            }
+        }
+        return result;
     }
 
     Status
@@ -104,7 +115,7 @@ TEST_CASE("Cluster extensions preserve legacy assignment", "[cluster_api]") {
     CHECK(node->input == &input);
     CHECK(cluster.Assign(input).has_value());
     CHECK(cluster.AssignWithDistance(input, Json::object()).error() == Status::not_implemented);
-    CHECK(cluster.BuildCompactionPlan(input, Json::object()).error() == Status::not_implemented);
+    CHECK(cluster.BuildCompactionPlan({}, Json::object()).error() == Status::not_implemented);
     CHECK(cluster.SetCentroids(input) == Status::not_implemented);
 }
 
@@ -121,18 +132,23 @@ TEST_CASE("Cluster extensions validate config before dispatch", "[cluster_api]")
         CHECK(node->input == &input);
     }
 
-    SECTION("plan receives config and dataset") {
-        auto result = cluster.BuildCompactionPlan(input, {{"batch_size", 23}});
+    SECTION("plan receives config and centroid counts") {
+        auto result = cluster.BuildCompactionPlan({3, 0, 7}, {{"batch_size", 23}});
         REQUIRE(result.has_value());
-        CHECK(result.value() == node->result);
+        CHECK(result.value().row_count == 10);
+        CHECK(result.value().centroid_count == 3);
+        const std::vector<uint64_t> expected_counts{3, 0, 7};
+        CHECK(result.value().centroid_counts == expected_counts);
+        REQUIRE(result.value().centroid_groups.size() == 2);
+        CHECK(result.value().centroid_groups[0].centroids == std::vector<uint32_t>{0});
+        CHECK(result.value().centroid_groups[1].centroids == std::vector<uint32_t>{2});
         CHECK(node->batch_size == 23);
-        CHECK(node->input == &input);
     }
 
     SECTION("invalid config never reaches the node") {
         CHECK(cluster.Assign(input, {{"batch_size", 0}}).error() == Status::out_of_range_in_json);
         CHECK(cluster.AssignWithDistance(input, {{"batch_size", 0}}).error() == Status::out_of_range_in_json);
-        CHECK(cluster.BuildCompactionPlan(input, {{"batch_size", 101}}).error() == Status::out_of_range_in_json);
+        CHECK(cluster.BuildCompactionPlan({1}, {{"batch_size", 101}}).error() == Status::out_of_range_in_json);
         CHECK(node->input == nullptr);
     }
 }

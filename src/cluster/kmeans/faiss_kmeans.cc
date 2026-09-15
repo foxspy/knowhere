@@ -4,6 +4,7 @@
 #include <faiss/IndexFlat.h>
 
 #include <algorithm>
+#include <limits>
 #include "cluster/kmeans/kmeans_config.h"
 #include "common/metric.h"
 #include "faiss/Clustering.h"
@@ -62,6 +63,49 @@ class FaissKmeansClusterNode : public ClusterNode {
         (void)cfg;
         size_t score;
         return AssignInternal(dataset, false, score, true);
+    }
+
+    expected<CompactionResult>
+    BuildCompactionPlan(const std::vector<uint64_t>& counts, const Config& cfg) override {
+        const auto& config = static_cast<const KmeansConfig&>(cfg);
+        if (counts.size() > std::numeric_limits<uint32_t>::max()) {
+            return expected<CompactionResult>::Err(Status::invalid_args, "too many centroids");
+        }
+        if (config.planner.value() != "ivf") {
+            return expected<CompactionResult>::Err(Status::invalid_args, "unsupported compaction planner");
+        }
+        const auto max_rows = config.compaction_max_rows.value();
+        if (max_rows <= 0) {
+            return expected<CompactionResult>::Err(Status::invalid_args, "compaction_max_rows must be positive");
+        }
+
+        CompactionResult result;
+        result.centroid_count = counts.size();
+        result.centroid_counts = counts;
+        CentroidGroup current;
+        for (uint32_t centroid = 0; centroid < counts.size(); ++centroid) {
+            const auto rows = counts[centroid];
+            if (result.row_count > std::numeric_limits<uint64_t>::max() - rows) {
+                return expected<CompactionResult>::Err(Status::invalid_args, "centroid row count sum overflows");
+            }
+            result.row_count += rows;
+            if (rows == 0) {
+                continue;
+            }
+            if (!current.centroids.empty() &&
+                (current.rows > uint64_t(max_rows) || rows > uint64_t(max_rows) - current.rows)) {
+                current.centroid_group_id = result.centroid_groups.size();
+                result.centroid_groups.emplace_back(std::move(current));
+                current = {};
+            }
+            current.rows += rows;
+            current.centroids.push_back(centroid);
+        }
+        if (!current.centroids.empty()) {
+            current.centroid_group_id = result.centroid_groups.size();
+            result.centroid_groups.emplace_back(std::move(current));
+        }
+        return result;
     }
 
     // return centroids, must be called after trained

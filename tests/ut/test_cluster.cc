@@ -202,3 +202,26 @@ TEST_CASE("Kmeans preserves low precision centroid types", "[cluster low precisi
         CheckLowPrecisionKmeans<knowhere::bf16>();
     }
 }
+
+TEST_CASE("Native Kmeans builds deterministic IVF compaction groups", "[cluster compaction]") {
+    auto cluster =
+        knowhere::ClusterFactory::Instance().Create<knowhere::fp32>(knowhere::ClusterEnum::CLUSTER_KMEANS).value();
+    auto result = cluster.BuildCompactionPlan({40, 0, 70, 20, 150}, {{"planner", "ivf"}, {"compaction_max_rows", 100}});
+    REQUIRE(result.has_value());
+    CHECK(result.value().row_count == 280);
+    CHECK(result.value().centroid_count == 5);
+    const std::vector<uint64_t> expected_counts{40, 0, 70, 20, 150};
+    CHECK(result.value().centroid_counts == expected_counts);
+    REQUIRE(result.value().centroid_groups.size() == 3);
+    CHECK(result.value().centroid_groups[0].centroids == std::vector<uint32_t>{0});
+    CHECK(result.value().centroid_groups[0].rows == 40);
+    const std::vector<uint32_t> expected_middle_group{2, 3};
+    CHECK(result.value().centroid_groups[1].centroids == expected_middle_group);
+    CHECK(result.value().centroid_groups[1].rows == 90);
+    CHECK(result.value().centroid_groups[2].centroids == std::vector<uint32_t>{4});
+    CHECK(result.value().centroid_groups[2].rows == 150);
+
+    CHECK(cluster.BuildCompactionPlan({1}, {{"planner", "metis"}, {"compaction_max_rows", 100}}).error() ==
+          knowhere::Status::invalid_args);
+    CHECK(cluster.BuildCompactionPlan({1}, {{"planner", "ivf"}}).error() == knowhere::Status::invalid_args);
+}

@@ -128,8 +128,8 @@ class Cluster {
     expected<DataSetPtr>
     AssignWithDistance(const DataSet& dataset, const Json& json) noexcept;
 
-    expected<DataSetPtr>
-    BuildCompactionPlan(const DataSet& assignment, const Json& json) noexcept;
+    expected<CompactionResult>
+    BuildCompactionPlan(const std::vector<uint64_t>& centroid_counts, const Json& json) noexcept;
 
     expected<DataSetPtr>
     GetCentroids() const noexcept;

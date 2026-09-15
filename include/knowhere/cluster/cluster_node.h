@@ -14,6 +14,7 @@
 
 #include "knowhere/binaryset.h"
 #include "knowhere/bitsetview.h"
+#include "knowhere/cluster/compaction_result.h"
 #include "knowhere/config.h"
 #include "knowhere/dataset.h"
 #include "knowhere/expected.h"
@@ -48,12 +49,12 @@ class ClusterNode : public Object {
         return expected<DataSetPtr>::Err(Status::not_implemented, "AssignWithDistance is not implemented");
     }
 
-    // build a compaction plan from assignment result.
-    virtual expected<DataSetPtr>
-    BuildCompactionPlan(const DataSet& assignment, const Config& cfg) {
-        (void)assignment;
+    // Build an owned compaction plan from counts indexed by centroid ID.
+    virtual expected<CompactionResult>
+    BuildCompactionPlan(const std::vector<uint64_t>& centroid_counts, const Config& cfg) {
+        (void)centroid_counts;
         (void)cfg;
-        return expected<DataSetPtr>::Err(Status::not_implemented, "BuildCompactionPlan is not implemented");
+        return expected<CompactionResult>::Err(Status::not_implemented, "BuildCompactionPlan is not implemented");
     }
 
     // return centroids, must be called after trained
